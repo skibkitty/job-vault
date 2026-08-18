@@ -339,7 +339,7 @@ Acceptance criteria:
 
 ## TASK-020 — Job domain model
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-011 (DONE)
 
@@ -349,18 +349,31 @@ Define and implement the core Job domain model with all required fields and vali
 
 Acceptance criteria:
 
-- [ ] Job struct with all required fields (id, title, company, location, url, description, etc.)
-- [ ] Job fields have appropriate types and validation
-- [ ] Job can be serialized/deserialized
-- [ ] Job has proper Debug and Clone implementations
-- [ ] Tests for Job creation and validation
-- [ ] All tests pass
+- [x] Job struct with all required fields (id, title, company, location, url, description, etc.)
+- [x] Job fields have appropriate types and validation
+- [x] Job can be serialized/deserialized
+- [x] Job has proper Debug and Clone implementations
+- [x] Tests for Job creation and validation
+- [x] All tests pass
 
 ## TASK-021 — JobSnapshot model
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-020
+Dependencies: TASK-020 (DONE)
+
+Goal:
+
+Define and implement the JobSnapshot model for capturing job state at a point in time.
+
+Acceptance criteria:
+
+- [ ] JobSnapshot struct with all required fields from DATA-MODEL.md
+- [ ] JobSnapshot has proper validation
+- [ ] JobSnapshot can be serialized/deserialized
+- [ ] JobSnapshot has proper Debug and Clone implementations
+- [ ] Tests for JobSnapshot creation and validation
+- [ ] All tests pass
 
 ## TASK-022 — Job CRUD
 

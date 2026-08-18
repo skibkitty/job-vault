@@ -14,11 +14,11 @@ Phase 1 — Vault and database
 
 ## Current task
 
-TASK-020 (READY)
+TASK-021 (READY)
 
 ## Recommended next action
 
-TASK-020 — Job domain model.
+TASK-021 — JobSnapshot model.
 
 ## Completed
 
@@ -42,6 +42,7 @@ TASK-020 — Job domain model.
 - Vault initialization implemented (TASK-012).
 - Vault unlock/lock state machine implemented (TASK-013).
 - Encrypted persistence tests implemented (TASK-014).
+- Job domain model implemented (TASK-020).
 
 ## Not yet implemented
 
@@ -62,4 +63,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-014: Encrypted persistence tests implemented with 55 tests passing.
+TASK-020: Job domain model implemented with 63 tests passing.
