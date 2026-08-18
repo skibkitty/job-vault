@@ -1,0 +1,30 @@
+# General
+*.log
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
+*.key
+*.pem
+*.p12
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Node (extension)
+node_modules/
+dist/
+build/
+
+# Rust (companion)
+companion/target/
+
+# OS
+desktop.ini

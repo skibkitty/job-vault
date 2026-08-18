@@ -18,7 +18,7 @@ A task may only be marked `DONE` when all acceptance criteria are satisfied and 
 
 ## TASK-001 — Initialize repository
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: None
 
@@ -28,14 +28,14 @@ Create the base Git repository and directory structure described by the architec
 
 Acceptance criteria:
 
-- [ ] Git repository exists.
-- [ ] Extension directory exists.
-- [ ] Companion directory exists.
-- [ ] `docs/`, `project/`, `fixtures/`, and `scripts/` exist.
-- [ ] Basic README exists.
-- [ ] Appropriate ignore files exist.
-- [ ] No secrets or user data are committed.
-- [ ] Project can be built/tested once implementation scaffolding is added.
+- [x] Git repository exists.
+- [x] Extension directory exists.
+- [x] Companion directory exists.
+- [x] `docs/`, `project/`, `fixtures/`, and `scripts/` exist.
+- [x] Basic README exists.
+- [x] Appropriate ignore files exist.
+- [x] No secrets or user data are committed.
+- [x] Project can be built/tested once implementation scaffolding is added.
 
 Likely next task:
 
@@ -45,9 +45,9 @@ TASK-002.
 
 ## TASK-002 — Establish agent/project documentation
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-001
+Dependencies: TASK-001 (DONE)
 
 Goal:
 
@@ -55,20 +55,20 @@ Create and validate `AGENTS.md`, task management files, handoff workflow, and pr
 
 Acceptance criteria:
 
-- [ ] Agent instructions are present.
-- [ ] Task registry is machine-readable enough for humans and agents.
-- [ ] Handoff format is documented.
-- [ ] Current-state format is documented.
-- [ ] Agent workflow is documented.
-- [ ] No ambiguity exists about how to choose the next task.
+- [x] Agent instructions are present.
+- [x] Task registry is machine-readable enough for humans and agents.
+- [x] Handoff format is documented.
+- [x] Current-state format is documented.
+- [x] Agent workflow is documented.
+- [x] No ambiguity exists about how to choose the next task.
 
 ---
 
 ## TASK-003 — Create architecture documentation
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-001
+Dependencies: TASK-001 (DONE)
 
 Goal:
 
@@ -76,20 +76,20 @@ Turn the architecture plan into implementation-ready documentation.
 
 Acceptance criteria:
 
-- [ ] Component boundaries documented.
-- [ ] Extension/companion boundary documented.
-- [ ] Adapter architecture documented.
-- [ ] Storage abstraction documented.
-- [ ] Diff architecture documented.
-- [ ] Future extension points documented.
+- [x] Component boundaries documented.
+- [x] Extension/companion boundary documented.
+- [x] Adapter architecture documented.
+- [x] Storage abstraction documented.
+- [x] Diff architecture documented.
+- [x] Future extension points documented.
 
 ---
 
 ## TASK-004 — Create threat model
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-003
+Dependencies: TASK-003 (DONE)
 
 Goal:
 
@@ -97,22 +97,22 @@ Document threats, assets, trust boundaries, mitigations, and residual risks.
 
 Acceptance criteria:
 
-- [ ] Assets listed.
-- [ ] Threat actors listed.
-- [ ] Browser boundary documented.
-- [ ] Extension/companion boundary documented.
-- [ ] Database boundary documented.
-- [ ] Lost/stolen-device scenario addressed.
-- [ ] Malicious-page scenario addressed.
-- [ ] malicious-dependency/agent-change scenario addressed.
+- [x] Assets listed.
+- [x] Threat actors listed.
+- [x] Browser boundary documented.
+- [x] Extension/companion boundary documented.
+- [x] Database boundary documented.
+- [x] Lost/stolen-device scenario addressed.
+- [x] Malicious-page scenario addressed.
+- [x] malicious-dependency/agent-change scenario addressed.
 
 ---
 
 ## TASK-005 — Create security specification
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-004
+Dependencies: TASK-004 (DONE)
 
 Goal:
 
@@ -120,15 +120,15 @@ Define concrete security requirements before implementing encryption or IPC.
 
 Acceptance criteria:
 
-- [ ] Password handling requirements defined.
-- [ ] KDF requirements defined.
-- [ ] encryption requirements defined.
-- [ ] key-management requirements defined.
-- [ ] vault-lock requirements defined.
-- [ ] logging policy defined.
-- [ ] backup requirements defined.
-- [ ] dependency policy defined.
-- [ ] network policy defined.
+- [x] Password handling requirements defined.
+- [x] KDF requirements defined.
+- [x] encryption requirements defined.
+- [x] key-management requirements defined.
+- [x] vault-lock requirements defined.
+- [x] logging policy defined.
+- [x] backup requirements defined.
+- [x] dependency policy defined.
+- [x] network policy defined.
 
 Do not invent cryptographic parameters without reviewing current library guidance.
 
@@ -136,9 +136,9 @@ Do not invent cryptographic parameters without reviewing current library guidanc
 
 ## TASK-006 — Create permission policy
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-003
+Dependencies: TASK-003 (DONE)
 
 Goal:
 
@@ -146,18 +146,18 @@ Define the minimum Chrome permissions and host access strategy.
 
 Acceptance criteria:
 
-- [ ] Every permission has a documented reason.
-- [ ] Optional vs required permissions considered.
-- [ ] `<all_urls>` explicitly rejected unless later justified.
-- [ ] Site access strategy documented.
+- [x] Every permission has a documented reason.
+- [x] Optional vs required permissions considered.
+- [x] `<all_urls>` explicitly rejected unless later justified.
+- [x] Site access strategy documented.
 
 ---
 
 ## TASK-007 — Scaffold Chrome extension
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-003, TASK-006
+Dependencies: TASK-003 (DONE), TASK-006 (DONE)
 
 Goal:
 
@@ -165,20 +165,20 @@ Create a minimal Manifest V3 extension with side-panel/popup foundation and test
 
 Acceptance criteria:
 
-- [ ] Extension builds.
-- [ ] Extension loads in Chrome developer mode.
-- [ ] No unnecessary permissions.
-- [ ] No network calls.
-- [ ] No sensitive storage implemented yet.
-- [ ] Basic automated test infrastructure exists.
+- [x] Extension builds.
+- [x] Extension loads in Chrome developer mode.
+- [x] No unnecessary permissions.
+- [x] No network calls.
+- [x] No sensitive storage implemented yet.
+- [x] Basic automated test infrastructure exists.
 
 ---
 
 ## TASK-008 — Scaffold Rust companion
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-003, TASK-005
+Dependencies: TASK-003 (DONE), TASK-005 (DONE)
 
 Goal:
 
@@ -186,20 +186,22 @@ Create the local companion process with clean module boundaries.
 
 Acceptance criteria:
 
-- [ ] Companion builds.
-- [ ] Tests run.
-- [ ] Vault module boundary exists.
-- [ ] Database module boundary exists.
-- [ ] IPC module boundary exists.
-- [ ] No network server is created.
+- [x] Companion builds.
+- [x] Tests run.
+- [x] Vault module boundary exists.
+- [x] Database module boundary exists.
+- [x] IPC module boundary exists.
+- [x] No network server is created.
+
+Note: Rust build toolchain (MSVC) required installation of Visual Studio Build Tools.
 
 ---
 
 ## TASK-009 — Implement Native Messaging protocol
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-007, TASK-008
+Dependencies: TASK-007 (DONE), TASK-008 (DONE)
 
 Goal:
 
@@ -207,21 +209,21 @@ Create a versioned, explicit extension-to-companion IPC protocol.
 
 Acceptance criteria:
 
-- [ ] Protocol version exists.
-- [ ] Request IDs exist.
-- [ ] Explicit operation names exist.
-- [ ] Schema validation exists.
-- [ ] Malformed requests are rejected.
-- [ ] Arbitrary command execution is impossible.
-- [ ] Integration test exists.
+- [x] Protocol version exists.
+- [x] Request IDs exist.
+- [x] Explicit operation names exist.
+- [x] Schema validation exists.
+- [x] Malformed requests are rejected.
+- [x] Arbitrary command execution is impossible.
+- [x] Integration test exists.
 
 ---
 
 ## TASK-010 — Finalize vault cryptographic design
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-005, TASK-008
+Dependencies: TASK-005 (DONE), TASK-008 (DONE)
 
 Goal:
 
@@ -229,14 +231,14 @@ Finalize the exact cryptographic implementation plan using established libraries
 
 Acceptance criteria:
 
-- [ ] KDF selected.
-- [ ] AEAD/encryption scheme selected.
-- [ ] key hierarchy documented.
-- [ ] nonce/IV handling documented.
-- [ ] randomness requirements documented.
-- [ ] password verification approach documented.
-- [ ] library choice documented.
-- [ ] no custom cryptography required.
+- [x] KDF selected.
+- [x] AEAD/encryption scheme selected.
+- [x] key hierarchy documented.
+- [x] nonce/IV handling documented.
+- [x] randomness requirements documented.
+- [x] password verification approach documented.
+- [x] library choice documented.
+- [x] no custom cryptography required.
 
 This task requires human review before implementation if the agent encounters ambiguity.
 
@@ -246,45 +248,75 @@ This task requires human review before implementation if the agent encounters am
 
 ## TASK-011 — Database abstraction
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-008, TASK-010
+Dependencies: TASK-008 (DONE), TASK-010 (DONE)
 
 Goal:
 
 Create storage abstraction and schema foundation.
 
+Acceptance criteria:
+
+- [x] Storage trait/abstraction exists.
+- [x] SQLite schema for job, job_snapshot, job_changeset.
+- [x] Schema creation is idempotent.
+- [x] Tests pass.
+
 ---
 
 ## TASK-012 — Vault initialization
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-010, TASK-011
+Dependencies: TASK-010 (DONE), TASK-011 (DONE)
 
 Goal:
 
 Create a new encrypted vault from a user password.
 
+Acceptance criteria:
+
+- [x] Vault created from password.
+- [x] Salt, KEK, DEK generated.
+- [x] DEK encrypted under KEK.
+- [x] Verification tag computed.
+- [x] Vault header written as JSON.
+- [x] Wrong password fails.
+- [x] Tests pass.
+
 ---
 
 ## TASK-013 — Vault unlock/lock
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-012
+Dependencies: TASK-012 (DONE)
 
 Goal:
 
-Implement safe vault lifecycle.
+Implement safe vault lifecycle with proper state machine validation.
+
+Acceptance criteria:
+
+- [x] State machine prevents invalid transitions (e.g., unlock while unlocked, lock while locked)
+- [x] Valid transitions: Locked→Unlocking, Unlocking→Unlocked, Unlocking→Error, Unlocked→Locking, Locking→Locked, Error→Locked, Error→Unlocking
+- [x] lock() returns Result<(), String> to handle invalid transitions
+- [x] unlock() uses transition validation
+- [x] Error state can recover to Locked or Unlocking
+- [x] DEK memory is zeroized on lock() using zeroize crate
+- [x] Automatic locking with configurable inactivity timeout
+- [x] Vault::open() loads existing vault from directory path
+- [x] All existing tests pass
+- [x] New tests for invalid state transitions, auto-lock, and vault open exist
 
 ---
 
 ## TASK-014 — Encrypted persistence tests
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-013
+Dependencies: TASK-013 (DONE)
 
 Goal:
 

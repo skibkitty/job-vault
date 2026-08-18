@@ -335,15 +335,79 @@ Include:
 - exact next recommended task;
 - exact instructions for the next agent.
 
-## 19. Git
+## 19. Git workflow
 
-Use task-based commits such as:
+### Branching
 
-`TASK-031: add LinkedIn job parser`
+One branch per task:
 
-Avoid vague commits such as `stuff`, `updates`, or `fixes`.
+```text
+task/TASK-001
+task/TASK-031
+```
 
-Do not rewrite shared history unless explicitly instructed.
+Branch from `main`. Never commit directly to `main`.
+
+### Commits
+
+Use task-based commit messages:
+
+```text
+TASK-031: add LinkedIn job parser
+```
+
+Avoid vague messages such as `stuff`, `updates`, or `fixes`.
+
+Keep full commit history. Do not squash or rebase shared history unless explicitly instructed. Full history makes reverting safe and review transparent.
+
+### Pull requests
+
+After completing a task on its branch:
+
+1. Push the branch.
+2. Create a PR targeting `main`.
+3. PR description must include: task ID, summary of changes, files changed, tests run, any security-relevant changes.
+4. Do not merge immediately.
+
+### Merging
+
+The human reviews some PRs and spot-checks others.
+
+- If the human reviews and approves: merge the PR.
+- If the human does not review within a reasonable time: add a note to the PR describing what was done and that self-merge is occurring, then merge.
+- Never merge if tests fail or known blockers exist.
+
+### Reverting
+
+Because full history is preserved, any task can be reverted with `git revert <commit>`.
+
+Milestones should be tagged for easy rollback:
+
+```text
+v0.1.0-foundation
+v0.2.0-vault
+```
+
+### Remote
+
+The remote is the source of truth for shared state. Before starting work:
+
+```text
+git pull origin main
+```
+
+Before ending a session:
+
+```text
+git push origin <branch>
+```
+
+### Do not
+
+- force-push;
+- rewrite shared history;
+- commit secrets, keys, or real user data;
+- merge broken code to unblock a later task.
 
 ## 20. When blocked
 
