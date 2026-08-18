@@ -18,7 +18,7 @@ A task may only be marked `DONE` when all acceptance criteria are satisfied and 
 
 ## TASK-001 — Initialize repository
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: None
 
@@ -28,14 +28,14 @@ Create the base Git repository and directory structure described by the architec
 
 Acceptance criteria:
 
-- [ ] Git repository exists.
-- [ ] Extension directory exists.
-- [ ] Companion directory exists.
-- [ ] `docs/`, `project/`, `fixtures/`, and `scripts/` exist.
-- [ ] Basic README exists.
-- [ ] Appropriate ignore files exist.
-- [ ] No secrets or user data are committed.
-- [ ] Project can be built/tested once implementation scaffolding is added.
+- [x] Git repository exists.
+- [x] Extension directory exists.
+- [x] Companion directory exists.
+- [x] `docs/`, `project/`, `fixtures/`, and `scripts/` exist.
+- [x] Basic README exists.
+- [x] Appropriate ignore files exist.
+- [x] No secrets or user data are committed.
+- [x] Project can be built/tested once implementation scaffolding is added.
 
 Likely next task:
 
@@ -45,9 +45,9 @@ TASK-002.
 
 ## TASK-002 — Establish agent/project documentation
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-001
+Dependencies: TASK-001 (DONE)
 
 Goal:
 
@@ -66,9 +66,9 @@ Acceptance criteria:
 
 ## TASK-003 — Create architecture documentation
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-001
+Dependencies: TASK-001 (DONE)
 
 Goal:
 

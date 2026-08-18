@@ -6,7 +6,7 @@ Job Vault
 
 ## Status
 
-PLANNING / PRE-IMPLEMENTATION
+IN_PROGRESS
 
 ## Current phase
 
@@ -18,7 +18,7 @@ TASK-001
 
 ## Recommended next action
 
-Implement TASK-001 after confirming the repository has been initialized.
+TASK-001 complete. Next: TASK-002 (agent/project documentation) or TASK-003 (architecture documentation) — both are READY.
 
 ## Completed
 
@@ -28,10 +28,10 @@ Implement TASK-001 after confirming the repository has been initialized.
 - LinkedIn, Indeed, and generic company career pages selected as initial sources.
 - Encrypted vault requirement established.
 - Multi-agent handoff model established.
+- Repository initialized with directory structure.
 
 ## Not yet implemented
 
-- Repository scaffold
 - Extension
 - Companion
 - IPC
@@ -51,4 +51,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-Initial project package.
+TASK-001: Repository initialized.

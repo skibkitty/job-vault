@@ -3,66 +3,65 @@
 ## Current session
 
 Agent:
-Not started
+opencode/big-pickle
 
 Date:
-Not started
+2026-08-18
 
 Task:
 TASK-001
 
 ## What has been done
 
-Planning package created.
+- Initialized Git repository with directory structure.
+- Created extension/, companion/, fixtures/, scripts/ directories.
+- Created .gitignore with appropriate rules.
+- Updated README.md for project use.
 
 ## What works
 
-Nothing implemented yet.
+Directory structure is ready for scaffolding.
 
 ## What does not work
 
-The application does not exist yet.
+No extension or companion code yet.
 
 ## Tests run
 
-None.
+None (no code to test).
 
 ## Files changed
 
-Planning/documentation package only.
+- README.md
+- .gitignore (new)
+- extension/ (new)
+- companion/ (new)
+- fixtures/ (new)
+- scripts/ (new)
+- project/CURRENT_STATE.md
+- project/HANDOFF.md
 
 ## Important discoveries
 
-The project should use a Chrome extension plus a local companion application.
-
-The companion should own the encrypted database and communicate with the extension through Chrome Native Messaging.
+The repository already existed with docs/ and project/ in place.
 
 ## Decisions
 
-See ADRs under `docs/decisions/`.
+See ADRs under docs/decisions/.
 
 ## Known risks
 
-Cryptographic implementation must use established libraries and should not be invented by the agent.
+None for this task.
 
 ## Next recommended action
 
-TASK-001 — Initialize repository and base project structure.
+TASK-002 or TASK-003 (both READY, both P0).
 
 ## Instructions for next agent
 
-Read:
-
-1. `AGENTS.md`
-2. `project/CURRENT_STATE.md`
-3. `project/TASKS.md`
-4. `docs/ARCHITECTURE.md`
-5. `docs/SECURITY.md`
-6. `docs/THREAT-MODEL.md`
-
-Then implement TASK-001.
-
-Do not begin job functionality yet.
+1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
+2. Choose TASK-002 (agent documentation) or TASK-003 (architecture documentation) as next.
+3. Implement only that task.
 
 ## Blockers
 

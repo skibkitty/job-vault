@@ -1,34 +1,45 @@
-# Job Vault — OpenCode Project Package
+# Job Vault
 
-This repository specification is for a private, personal-use Chrome extension + local companion application that tracks job postings, stores historical snapshots, compares reposts, and highlights meaningful changes.
+Private, local-first personal job-search vault.
 
-## How to use this package
+## Components
 
-Give the entire `job-vault-opencode-spec` directory to OpenCode as the project documentation, then use short prompts such as:
+- **extension/** — Chrome Manifest V3 extension
+- **companion/** — Rust local companion application
+- **docs/** — Architecture, security, and design documentation
+- **project/** — Project management (tasks, state, handoffs)
+- **fixtures/** — Sanitized test fixtures
+- **scripts/** — Utility scripts
 
-> Read the project instructions and tell me the next task.
+## Architecture
 
-and:
+```text
+Browser pages
+  |
+  v
+Chrome Extension
+  |
+  | Chrome Native Messaging
+  v
+Rust Local Companion
+  |
+  +-- Vault (encrypted)
+  +-- Database
+  +-- Job Matching
+  +-- Diff Engine
+  |
+  v
+Encrypted Local Storage
+```
 
-> Implement the next task. Ask me questions if you need my input or if something is not possible for you to do.
+## Privacy
 
-OpenCode must treat the repository's project-management files as the source of truth, not prior conversation history.
+All job-search data stays on the local machine. No telemetry, no cloud sync, no remote AI. See `docs/PRIVACY.md` for details.
 
-## Important
+## Status
 
-This project does **not** claim HIPAA or GLBA legal compliance. It uses technical safeguards inspired by those frameworks because the application handles highly sensitive personal job-search data.
+Phase 0 — Foundation. See `project/TASKS.md` for current tasks.
 
-## Current phase
+## License
 
-Planning / pre-implementation.
-
-The first implementation task is deliberately project infrastructure and documentation, not the job tracker itself.
-
-## Recommended workflow
-
-1. Initialize a Git repository.
-2. Copy these files into the repository.
-3. Have OpenCode complete the first READY task.
-4. Review security-sensitive decisions yourself.
-5. Continue asking OpenCode for the next task.
-6. Before ending a session, OpenCode must update the project state and handoff files.
+TBD
