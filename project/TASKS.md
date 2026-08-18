@@ -87,7 +87,7 @@ Acceptance criteria:
 
 ## TASK-004 — Create threat model
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-003 (DONE)
 
@@ -97,22 +97,22 @@ Document threats, assets, trust boundaries, mitigations, and residual risks.
 
 Acceptance criteria:
 
-- [ ] Assets listed.
-- [ ] Threat actors listed.
-- [ ] Browser boundary documented.
-- [ ] Extension/companion boundary documented.
-- [ ] Database boundary documented.
-- [ ] Lost/stolen-device scenario addressed.
-- [ ] Malicious-page scenario addressed.
-- [ ] malicious-dependency/agent-change scenario addressed.
+- [x] Assets listed.
+- [x] Threat actors listed.
+- [x] Browser boundary documented.
+- [x] Extension/companion boundary documented.
+- [x] Database boundary documented.
+- [x] Lost/stolen-device scenario addressed.
+- [x] Malicious-page scenario addressed.
+- [x] malicious-dependency/agent-change scenario addressed.
 
 ---
 
 ## TASK-005 — Create security specification
 
-Status: READY
+Status: DONE
 Priority: P0
-Dependencies: TASK-004 (READY)
+Dependencies: TASK-004 (DONE)
 
 Goal:
 
@@ -120,15 +120,15 @@ Define concrete security requirements before implementing encryption or IPC.
 
 Acceptance criteria:
 
-- [ ] Password handling requirements defined.
-- [ ] KDF requirements defined.
-- [ ] encryption requirements defined.
-- [ ] key-management requirements defined.
-- [ ] vault-lock requirements defined.
-- [ ] logging policy defined.
-- [ ] backup requirements defined.
-- [ ] dependency policy defined.
-- [ ] network policy defined.
+- [x] Password handling requirements defined.
+- [x] KDF requirements defined.
+- [x] encryption requirements defined.
+- [x] key-management requirements defined.
+- [x] vault-lock requirements defined.
+- [x] logging policy defined.
+- [x] backup requirements defined.
+- [x] dependency policy defined.
+- [x] network policy defined.
 
 Do not invent cryptographic parameters without reviewing current library guidance.
 
@@ -136,7 +136,7 @@ Do not invent cryptographic parameters without reviewing current library guidanc
 
 ## TASK-006 — Create permission policy
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-003 (DONE)
 
@@ -146,18 +146,18 @@ Define the minimum Chrome permissions and host access strategy.
 
 Acceptance criteria:
 
-- [ ] Every permission has a documented reason.
-- [ ] Optional vs required permissions considered.
-- [ ] `<all_urls>` explicitly rejected unless later justified.
-- [ ] Site access strategy documented.
+- [x] Every permission has a documented reason.
+- [x] Optional vs required permissions considered.
+- [x] `<all_urls>` explicitly rejected unless later justified.
+- [x] Site access strategy documented.
 
 ---
 
 ## TASK-007 — Scaffold Chrome extension
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-003, TASK-006
+Dependencies: TASK-003 (DONE), TASK-006 (DONE)
 
 Goal:
 
@@ -176,9 +176,9 @@ Acceptance criteria:
 
 ## TASK-008 — Scaffold Rust companion
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-003, TASK-005
+Dependencies: TASK-003 (DONE), TASK-005 (DONE)
 
 Goal:
 

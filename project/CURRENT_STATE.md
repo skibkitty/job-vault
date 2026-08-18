@@ -14,11 +14,11 @@ Phase 0 — Foundation
 
 ## Current task
 
-TASK-004 / TASK-005 / TASK-006 (all READY)
+TASK-007 or TASK-008 (both READY, both P0)
 
 ## Recommended next action
 
-TASK-004 (threat model), TASK-005 (security spec), or TASK-006 (permission policy). TASK-005 depends on TASK-004, so do TASK-004 first, then TASK-005. TASK-006 is independent.
+TASK-007 (scaffold Chrome extension) or TASK-008 (scaffold Rust companion). These are independent and can be done in either order. TASK-009 (Native Messaging) requires both.
 
 ## Completed
 
@@ -31,6 +31,9 @@ TASK-004 (threat model), TASK-005 (security spec), or TASK-006 (permission polic
 - Repository initialized with directory structure (TASK-001).
 - Agent/project documentation validated (TASK-002).
 - Architecture documentation validated (TASK-003).
+- Threat model validated (TASK-004).
+- Security specification validated (TASK-005).
+- Permission policy created (TASK-006).
 
 ## Not yet implemented
 
