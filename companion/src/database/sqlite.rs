@@ -216,6 +216,37 @@ impl SqliteStorage {
             .map_err(|e| format!("Failed to collect snapshots: {e}"))?;
         Ok(snapshots)
     }
+
+    pub fn search_jobs(&self, query: &str) -> Result<Vec<Job>, String> {
+        if query.is_empty() {
+            return Err("Search query cannot be empty".to_string());
+        }
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {e}"))?;
+        let pattern = format!("%{query}%");
+        let mut stmt = conn
+            .prepare("SELECT id, company_id, title, canonical_url, location, employment_type, salary, source, external_job_id, created_at, updated_at FROM job WHERE title LIKE ?1 OR company_id LIKE ?1 OR location LIKE ?1 ORDER BY created_at DESC")
+            .map_err(|e| format!("Failed to prepare statement: {e}"))?;
+        let jobs = stmt
+            .query_map([&pattern], |row| {
+                Ok(Job {
+                    id: row.get(0)?,
+                    company_id: row.get(1)?,
+                    title: row.get(2)?,
+                    canonical_url: row.get(3)?,
+                    location: row.get(4)?,
+                    employment_type: row.get(5)?,
+                    salary: row.get(6)?,
+                    source: row.get(7)?,
+                    external_job_id: row.get(8)?,
+                    created_at: row.get(9)?,
+                    updated_at: row.get(10)?,
+                })
+            })
+            .map_err(|e| format!("Failed to search jobs: {e}"))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("Failed to collect jobs: {e}"))?;
+        Ok(jobs)
+    }
 }
 
 #[cfg(test)]
@@ -404,5 +435,60 @@ mod tests {
         let snapshots = storage.get_snapshots_for_job("job-1").unwrap();
         assert_eq!(snapshots[0].id, "snap-2");
         assert_eq!(snapshots[1].id, "snap-1");
+    }
+
+    #[test]
+    fn search_jobs_by_title() {
+        let storage = create_test_storage();
+        let job1 = Job::new("job-1".to_string(), "Software Engineer".to_string(), "2026-01-01T00:00:00Z".to_string());
+        let job2 = Job::new("job-2".to_string(), "Data Scientist".to_string(), "2026-01-01T00:00:00Z".to_string());
+        storage.create_job(&job1).unwrap();
+        storage.create_job(&job2).unwrap();
+
+        let results = storage.search_jobs("Software").unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "job-1");
+    }
+
+    #[test]
+    fn search_jobs_case_insensitive() {
+        let storage = create_test_storage();
+        let job = Job::new("job-1".to_string(), "Software Engineer".to_string(), "2026-01-01T00:00:00Z".to_string());
+        storage.create_job(&job).unwrap();
+
+        let results = storage.search_jobs("software").unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "job-1");
+    }
+
+    #[test]
+    fn search_jobs_by_location() {
+        let storage = create_test_storage();
+        let mut job1 = Job::new("job-1".to_string(), "Software Engineer".to_string(), "2026-01-01T00:00:00Z".to_string());
+        job1.location = Some("San Francisco, CA".to_string());
+        let mut job2 = Job::new("job-2".to_string(), "Software Engineer".to_string(), "2026-01-01T00:00:00Z".to_string());
+        job2.location = Some("New York, NY".to_string());
+        storage.create_job(&job1).unwrap();
+        storage.create_job(&job2).unwrap();
+
+        let results = storage.search_jobs("San Francisco").unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "job-1");
+    }
+
+    #[test]
+    fn search_jobs_empty_query_fails() {
+        let storage = create_test_storage();
+        assert!(storage.search_jobs("").is_err());
+    }
+
+    #[test]
+    fn search_jobs_no_results() {
+        let storage = create_test_storage();
+        let job = Job::new("job-1".to_string(), "Software Engineer".to_string(), "2026-01-01T00:00:00Z".to_string());
+        storage.create_job(&job).unwrap();
+
+        let results = storage.search_jobs("Nonexistent").unwrap();
+        assert!(results.is_empty());
     }
 }
