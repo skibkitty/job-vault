@@ -14,11 +14,11 @@ Phase 1 — Vault and database
 
 ## Current task
 
-TASK-022 (READY)
+TASK-023 (READY)
 
 ## Recommended next action
 
-TASK-022 — Job CRUD.
+TASK-023 — Snapshot history.
 
 ## Completed
 
@@ -44,6 +44,7 @@ TASK-022 — Job CRUD.
 - Encrypted persistence tests implemented (TASK-014).
 - Job domain model implemented (TASK-020).
 - JobSnapshot model implemented (TASK-021).
+- Job CRUD operations implemented (TASK-022).
 
 ## Not yet implemented
 
@@ -64,4 +65,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-021: JobSnapshot model implemented with 72 tests passing.
+TASK-022: Job CRUD operations implemented with 81 tests passing.
