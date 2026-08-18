@@ -3,7 +3,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use crate::database::schema;
-use crate::model::Job;
+use crate::model::{Job, JobSnapshot};
 
 pub struct SqliteStorage {
     conn: Mutex<Connection>,
@@ -133,6 +133,89 @@ impl SqliteStorage {
             .map_err(|e| format!("Failed to collect jobs: {e}"))?;
         Ok(jobs)
     }
+
+    pub fn create_snapshot(&self, snapshot: &JobSnapshot) -> Result<(), String> {
+        snapshot.validate()?;
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {e}"))?;
+        conn.execute(
+            "INSERT INTO job_snapshot (id, job_id, captured_at, source_url, raw_text, normalized_text, title, company, location, salary, description, requirements, responsibilities, extraction_metadata) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+            rusqlite::params![
+                snapshot.id,
+                snapshot.job_id,
+                snapshot.captured_at,
+                snapshot.source_url,
+                snapshot.raw_text,
+                snapshot.normalized_text,
+                snapshot.title,
+                snapshot.company,
+                snapshot.location,
+                snapshot.salary,
+                snapshot.description,
+                snapshot.requirements,
+                snapshot.responsibilities,
+                snapshot.extraction_metadata,
+            ],
+        )
+        .map_err(|e| format!("Failed to insert snapshot: {e}"))?;
+        Ok(())
+    }
+
+    pub fn get_snapshot(&self, id: &str) -> Result<JobSnapshot, String> {
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {e}"))?;
+        conn.query_row(
+            "SELECT id, job_id, captured_at, source_url, raw_text, normalized_text, title, company, location, salary, description, requirements, responsibilities, extraction_metadata FROM job_snapshot WHERE id = ?1",
+            [id],
+            |row| {
+                Ok(JobSnapshot {
+                    id: row.get(0)?,
+                    job_id: row.get(1)?,
+                    captured_at: row.get(2)?,
+                    source_url: row.get(3)?,
+                    raw_text: row.get(4)?,
+                    normalized_text: row.get(5)?,
+                    title: row.get(6)?,
+                    company: row.get(7)?,
+                    location: row.get(8)?,
+                    salary: row.get(9)?,
+                    description: row.get(10)?,
+                    requirements: row.get(11)?,
+                    responsibilities: row.get(12)?,
+                    extraction_metadata: row.get(13)?,
+                })
+            },
+        )
+        .map_err(|e| format!("Failed to get snapshot: {e}"))
+    }
+
+    pub fn get_snapshots_for_job(&self, job_id: &str) -> Result<Vec<JobSnapshot>, String> {
+        let conn = self.conn.lock().map_err(|e| format!("Lock error: {e}"))?;
+        let mut stmt = conn
+            .prepare("SELECT id, job_id, captured_at, source_url, raw_text, normalized_text, title, company, location, salary, description, requirements, responsibilities, extraction_metadata FROM job_snapshot WHERE job_id = ?1 ORDER BY captured_at DESC")
+            .map_err(|e| format!("Failed to prepare statement: {e}"))?;
+        let snapshots = stmt
+            .query_map([job_id], |row| {
+                Ok(JobSnapshot {
+                    id: row.get(0)?,
+                    job_id: row.get(1)?,
+                    captured_at: row.get(2)?,
+                    source_url: row.get(3)?,
+                    raw_text: row.get(4)?,
+                    normalized_text: row.get(5)?,
+                    title: row.get(6)?,
+                    company: row.get(7)?,
+                    location: row.get(8)?,
+                    salary: row.get(9)?,
+                    description: row.get(10)?,
+                    requirements: row.get(11)?,
+                    responsibilities: row.get(12)?,
+                    extraction_metadata: row.get(13)?,
+                })
+            })
+            .map_err(|e| format!("Failed to query snapshots: {e}"))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("Failed to collect snapshots: {e}"))?;
+        Ok(snapshots)
+    }
 }
 
 #[cfg(test)]
@@ -237,5 +320,89 @@ mod tests {
         let storage = create_test_storage();
         let jobs = storage.list_jobs().unwrap();
         assert!(jobs.is_empty());
+    }
+
+    fn test_snapshot(id: &str, job_id: &str) -> JobSnapshot {
+        JobSnapshot::new(
+            id.to_string(),
+            job_id.to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "Software Engineer".to_string(),
+            "Description of the job".to_string(),
+        )
+    }
+
+    #[test]
+    fn create_and_get_snapshot() {
+        let storage = create_test_storage();
+        let job = test_job("job-1");
+        storage.create_job(&job).unwrap();
+
+        let snapshot = test_snapshot("snap-1", "job-1");
+        storage.create_snapshot(&snapshot).unwrap();
+
+        let retrieved = storage.get_snapshot("snap-1").unwrap();
+        assert_eq!(retrieved.id, "snap-1");
+        assert_eq!(retrieved.job_id, "job-1");
+        assert_eq!(retrieved.title, "Software Engineer");
+    }
+
+    #[test]
+    fn create_snapshot_validates() {
+        let storage = create_test_storage();
+        let snapshot = JobSnapshot::new(
+            "".to_string(),
+            "job-1".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "title".to_string(),
+            "description".to_string(),
+        );
+        assert!(storage.create_snapshot(&snapshot).is_err());
+    }
+
+    #[test]
+    fn get_nonexistent_snapshot_fails() {
+        let storage = create_test_storage();
+        assert!(storage.get_snapshot("nonexistent").is_err());
+    }
+
+    #[test]
+    fn get_snapshots_for_job() {
+        let storage = create_test_storage();
+        let job = test_job("job-1");
+        storage.create_job(&job).unwrap();
+
+        let snap1 = test_snapshot("snap-1", "job-1");
+        let snap2 = test_snapshot("snap-2", "job-1");
+        storage.create_snapshot(&snap1).unwrap();
+        storage.create_snapshot(&snap2).unwrap();
+
+        let snapshots = storage.get_snapshots_for_job("job-1").unwrap();
+        assert_eq!(snapshots.len(), 2);
+    }
+
+    #[test]
+    fn get_snapshots_for_job_empty() {
+        let storage = create_test_storage();
+        let snapshots = storage.get_snapshots_for_job("nonexistent").unwrap();
+        assert!(snapshots.is_empty());
+    }
+
+    #[test]
+    fn snapshots_ordered_by_captured_at() {
+        let storage = create_test_storage();
+        let job = test_job("job-1");
+        storage.create_job(&job).unwrap();
+
+        let mut snap1 = test_snapshot("snap-1", "job-1");
+        snap1.captured_at = "2026-01-01T00:00:00Z".to_string();
+        let mut snap2 = test_snapshot("snap-2", "job-1");
+        snap2.captured_at = "2026-01-02T00:00:00Z".to_string();
+        storage.create_snapshot(&snap1).unwrap();
+        storage.create_snapshot(&snap2).unwrap();
+
+        let snapshots = storage.get_snapshots_for_job("job-1").unwrap();
+        assert_eq!(snapshots[0].id, "snap-2");
+        assert_eq!(snapshots[1].id, "snap-1");
     }
 }

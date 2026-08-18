@@ -14,11 +14,11 @@ Phase 1 — Vault and database
 
 ## Current task
 
-TASK-023 (READY)
+TASK-024 (READY)
 
 ## Recommended next action
 
-TASK-023 — Snapshot history.
+TASK-024 — Local job search.
 
 ## Completed
 
@@ -45,6 +45,7 @@ TASK-023 — Snapshot history.
 - Job domain model implemented (TASK-020).
 - JobSnapshot model implemented (TASK-021).
 - Job CRUD operations implemented (TASK-022).
+- Snapshot history operations implemented (TASK-023).
 
 ## Not yet implemented
 
@@ -65,4 +66,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-022: Job CRUD operations implemented with 81 tests passing.
+TASK-023: Snapshot history operations implemented with 87 tests passing.
