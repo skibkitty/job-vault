@@ -14,11 +14,11 @@ Phase 1 — Vault and database
 
 ## Current task
 
-TASK-021 (READY)
+TASK-022 (READY)
 
 ## Recommended next action
 
-TASK-021 — JobSnapshot model.
+TASK-022 — Job CRUD.
 
 ## Completed
 
@@ -43,6 +43,7 @@ TASK-021 — JobSnapshot model.
 - Vault unlock/lock state machine implemented (TASK-013).
 - Encrypted persistence tests implemented (TASK-014).
 - Job domain model implemented (TASK-020).
+- JobSnapshot model implemented (TASK-021).
 
 ## Not yet implemented
 
@@ -63,4 +64,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-020: Job domain model implemented with 63 tests passing.
+TASK-021: JobSnapshot model implemented with 72 tests passing.

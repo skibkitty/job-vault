@@ -49,6 +49,70 @@ impl Job {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct JobSnapshot {
+    pub id: String,
+    pub job_id: String,
+    pub captured_at: String,
+    pub source_url: Option<String>,
+    pub raw_text: Option<String>,
+    pub normalized_text: Option<String>,
+    pub title: String,
+    pub company: Option<String>,
+    pub location: Option<String>,
+    pub salary: Option<String>,
+    pub description: String,
+    pub requirements: Option<String>,
+    pub responsibilities: Option<String>,
+    pub extraction_metadata: Option<String>,
+}
+
+impl JobSnapshot {
+    pub fn new(
+        id: String,
+        job_id: String,
+        captured_at: String,
+        title: String,
+        description: String,
+    ) -> Self {
+        Self {
+            id,
+            job_id,
+            captured_at,
+            source_url: None,
+            raw_text: None,
+            normalized_text: None,
+            title,
+            company: None,
+            location: None,
+            salary: None,
+            description,
+            requirements: None,
+            responsibilities: None,
+            extraction_metadata: None,
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), String> {
+        if self.id.is_empty() {
+            return Err("JobSnapshot id cannot be empty".to_string());
+        }
+        if self.job_id.is_empty() {
+            return Err("JobSnapshot job_id cannot be empty".to_string());
+        }
+        if self.captured_at.is_empty() {
+            return Err("JobSnapshot captured_at cannot be empty".to_string());
+        }
+        if self.title.is_empty() {
+            return Err("JobSnapshot title cannot be empty".to_string());
+        }
+        if self.description.is_empty() {
+            return Err("JobSnapshot description cannot be empty".to_string());
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -159,5 +223,143 @@ mod tests {
         assert!(job.validate().is_ok());
         assert_eq!(job.company_id, Some("company-456".to_string()));
         assert_eq!(job.source, Some("linkedin".to_string()));
+    }
+
+    #[test]
+    fn job_snapshot_creation() {
+        let snapshot = JobSnapshot::new(
+            "snap-123".to_string(),
+            "job-456".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "Software Engineer".to_string(),
+            "Description of the job".to_string(),
+        );
+
+        assert_eq!(snapshot.id, "snap-123");
+        assert_eq!(snapshot.job_id, "job-456");
+        assert_eq!(snapshot.title, "Software Engineer");
+        assert!(snapshot.company.is_none());
+        assert!(snapshot.description == "Description of the job");
+    }
+
+    #[test]
+    fn job_snapshot_validation_passes() {
+        let snapshot = JobSnapshot::new(
+            "snap-123".to_string(),
+            "job-456".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "Software Engineer".to_string(),
+            "Description of the job".to_string(),
+        );
+        assert!(snapshot.validate().is_ok());
+    }
+
+    #[test]
+    fn job_snapshot_validation_empty_id_fails() {
+        let snapshot = JobSnapshot::new(
+            "".to_string(),
+            "job-456".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "Software Engineer".to_string(),
+            "Description of the job".to_string(),
+        );
+        let result = snapshot.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("id"));
+    }
+
+    #[test]
+    fn job_snapshot_validation_empty_job_id_fails() {
+        let snapshot = JobSnapshot::new(
+            "snap-123".to_string(),
+            "".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "Software Engineer".to_string(),
+            "Description of the job".to_string(),
+        );
+        let result = snapshot.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("job_id"));
+    }
+
+    #[test]
+    fn job_snapshot_validation_empty_title_fails() {
+        let snapshot = JobSnapshot::new(
+            "snap-123".to_string(),
+            "job-456".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "".to_string(),
+            "Description of the job".to_string(),
+        );
+        let result = snapshot.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("title"));
+    }
+
+    #[test]
+    fn job_snapshot_validation_empty_description_fails() {
+        let snapshot = JobSnapshot::new(
+            "snap-123".to_string(),
+            "job-456".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "Software Engineer".to_string(),
+            "".to_string(),
+        );
+        let result = snapshot.validate();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("description"));
+    }
+
+    #[test]
+    fn job_snapshot_serialization_roundtrip() {
+        let snapshot = JobSnapshot::new(
+            "snap-123".to_string(),
+            "job-456".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "Software Engineer".to_string(),
+            "Description of the job".to_string(),
+        );
+
+        let json = serde_json::to_string(&snapshot).unwrap();
+        let deserialized: JobSnapshot = serde_json::from_str(&json).unwrap();
+        assert_eq!(snapshot, deserialized);
+    }
+
+    #[test]
+    fn job_snapshot_clone() {
+        let snapshot = JobSnapshot::new(
+            "snap-123".to_string(),
+            "job-456".to_string(),
+            "2026-01-01T00:00:00Z".to_string(),
+            "Software Engineer".to_string(),
+            "Description of the job".to_string(),
+        );
+
+        let cloned = snapshot.clone();
+        assert_eq!(snapshot, cloned);
+    }
+
+    #[test]
+    fn job_snapshot_with_optional_fields() {
+        let snapshot = JobSnapshot {
+            id: "snap-123".to_string(),
+            job_id: "job-456".to_string(),
+            captured_at: "2026-01-01T00:00:00Z".to_string(),
+            source_url: Some("https://example.com/job/123".to_string()),
+            raw_text: Some("Raw job posting text".to_string()),
+            normalized_text: Some("Normalized job posting text".to_string()),
+            title: "Software Engineer".to_string(),
+            company: Some("Example Corp".to_string()),
+            location: Some("San Francisco, CA".to_string()),
+            salary: Some("$100,000 - $150,000".to_string()),
+            description: "Description of the job".to_string(),
+            requirements: Some("5+ years experience".to_string()),
+            responsibilities: Some("Build software".to_string()),
+            extraction_metadata: Some("{\"source\": \"linkedin\"}".to_string()),
+        };
+
+        assert!(snapshot.validate().is_ok());
+        assert_eq!(snapshot.company, Some("Example Corp".to_string()));
+        assert_eq!(snapshot.requirements, Some("5+ years experience".to_string()));
     }
 }

@@ -9,24 +9,25 @@ Date:
 2026-08-18
 
 Task:
-TASK-020
+TASK-021
 
 ## What has been done
 
-- Implemented Job domain model with all required fields.
-- Created Job struct with serialization/deserialization support.
-- Added validation for required fields (id, title, created_at, updated_at).
+- Implemented JobSnapshot model for capturing job state at a point in time.
+- Created JobSnapshot struct with all required fields from DATA-MODEL.md.
+- Added validation for required fields (id, job_id, captured_at, title, description).
 - Added Debug, Clone, PartialEq, Eq implementations.
-- Added 8 comprehensive tests.
-- All 63 tests pass.
+- Added serialization/deserialization support.
+- Added 9 comprehensive tests.
+- All 72 tests pass.
 
 ## What works
 
-- Job creation with required fields
-- Job validation (empty id, title, created_at, updated_at fail)
-- Job serialization/deserialization roundtrip
-- Job clone
-- Job with optional fields (company_id, canonical_url, location, etc.)
+- JobSnapshot creation with required fields
+- JobSnapshot validation (empty id, job_id, captured_at, title, description fail)
+- JobSnapshot serialization/deserialization roundtrip
+- JobSnapshot clone
+- JobSnapshot with optional fields (source_url, raw_text, company, requirements, etc.)
 
 ## What does not work
 
@@ -34,28 +35,27 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 63 passed
+- `cargo test` — 72 passed
 
 ## Files changed
 
-- companion/src/model/mod.rs (new)
-- companion/src/main.rs
+- companion/src/model/mod.rs
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- Job model fields match database schema from TASK-011
-- Validation is lightweight and can be extended as needed
-- Optional fields allow partial job data from different sources
+- JobSnapshot fields match database schema from TASK-011
+- JobSnapshot is linked to Job via job_id
+- Raw text and normalized text fields allow for diff analysis later
 
 ## Decisions
 
-- Job id is a String (UUID or other format) for flexibility
-- Timestamps are String format (ISO 8601 or similar) for serialization
-- Validation is separate from construction for flexibility
-- Job implements standard traits (Debug, Clone, Serialize, Deserialize)
+- JobSnapshot captures job state at a specific point in time (captured_at)
+- Required fields: id, job_id, captured_at, title, description
+- Optional fields allow partial data extraction from different sources
+- Extraction metadata field allows storing source-specific extraction info
 
 ## Known risks
 
@@ -63,12 +63,12 @@ None.
 
 ## Next recommended action
 
-TASK-021 — JobSnapshot model.
+TASK-022 — Job CRUD.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-021 — JobSnapshot model.
+2. Implement TASK-022 — Job CRUD.
 
 ## Blockers
 
