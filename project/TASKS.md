@@ -396,7 +396,7 @@ Acceptance criteria:
 
 ## TASK-023 — Snapshot history
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-022 (DONE)
 
@@ -406,18 +406,31 @@ Implement operations for managing job snapshot history.
 
 Acceptance criteria:
 
-- [ ] Create snapshots for jobs
-- [ ] Get snapshot history for a job
-- [ ] Get specific snapshot by id
-- [ ] Snapshots are linked to jobs via job_id
-- [ ] Tests for snapshot operations
-- [ ] All tests pass
+- [x] Create snapshots for jobs
+- [x] Get snapshot history for a job
+- [x] Get specific snapshot by id
+- [x] Snapshots are linked to jobs via job_id
+- [x] Tests for snapshot operations
+- [x] All tests pass
 
 ## TASK-024 — Local job search
 
-Status: BACKLOG
+Status: READY
 Priority: P1
-Dependencies: TASK-022
+Dependencies: TASK-022 (DONE)
+
+Goal:
+
+Implement local search functionality for jobs in the vault.
+
+Acceptance criteria:
+
+- [ ] Search jobs by title, company, location
+- [ ] Search is case-insensitive
+- [ ] Search returns matching jobs
+- [ ] Search works on unlocked vault
+- [ ] Tests for search functionality
+- [ ] All tests pass
 
 ---
 
