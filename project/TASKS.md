@@ -289,21 +289,34 @@ Acceptance criteria:
 
 ## TASK-013 — Vault unlock/lock
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-012 (DONE)
 
 Goal:
 
-Implement safe vault lifecycle.
+Implement safe vault lifecycle with proper state machine validation.
+
+Acceptance criteria:
+
+- [x] State machine prevents invalid transitions (e.g., unlock while unlocked, lock while locked)
+- [x] Valid transitions: Locked→Unlocking, Unlocking→Unlocked, Unlocking→Error, Unlocked→Locking, Locking→Locked, Error→Locked, Error→Unlocking
+- [x] lock() returns Result<(), String> to handle invalid transitions
+- [x] unlock() uses transition validation
+- [x] Error state can recover to Locked or Unlocking
+- [x] DEK memory is zeroized on lock() using zeroize crate
+- [x] Automatic locking with configurable inactivity timeout
+- [x] Vault::open() loads existing vault from directory path
+- [x] All existing tests pass
+- [x] New tests for invalid state transitions, auto-lock, and vault open exist
 
 ---
 
 ## TASK-014 — Encrypted persistence tests
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-013
+Dependencies: TASK-013 (DONE)
 
 Goal:
 

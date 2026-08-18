@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 use serde::{Deserialize, Serialize};
+use zeroize::Zeroize;
 
 use crate::crypto;
 
@@ -11,6 +12,22 @@ pub enum VaultState {
     Unlocked,
     Locking,
     Error,
+}
+
+impl VaultState {
+    fn can_transition_to(&self, next: &VaultState) -> bool {
+        matches!(
+            (self, next),
+            (VaultState::Locked, VaultState::Unlocking)
+                | (VaultState::Unlocking, VaultState::Unlocked)
+                | (VaultState::Unlocking, VaultState::Error)
+                | (VaultState::Unlocked, VaultState::Locking)
+                | (VaultState::Locking, VaultState::Locked)
+                | (VaultState::Error, VaultState::Locked)
+                | (VaultState::Error, VaultState::Unlocking)
+                | (VaultState::Locked, VaultState::Locked)
+        )
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,8 +52,43 @@ pub struct KdfParams {
 pub struct Vault {
     state: VaultState,
     header: Option<VaultHeader>,
-    dek: Option<[u8; crypto::KEY_LEN]>,
+    dek: Option<ZeroizeKey>,
     vault_dir: Option<std::path::PathBuf>,
+    last_activity: Option<std::time::Instant>,
+    auto_lock_timeout: Option<std::time::Duration>,
+}
+
+struct ZeroizeKey([u8; crypto::KEY_LEN]);
+
+impl Zeroize for ZeroizeKey {
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
+
+impl Drop for ZeroizeKey {
+    fn drop(&mut self) {
+        self.0.zeroize();
+    }
+}
+
+impl std::fmt::Debug for ZeroizeKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ZeroizeKey").finish_non_exhaustive()
+    }
+}
+
+impl std::fmt::Debug for Vault {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Vault")
+            .field("state", &self.state)
+            .field("header", &self.header)
+            .field("dek", &self.dek.as_ref().map(|_| "..."))
+            .field("vault_dir", &self.vault_dir)
+            .field("last_activity", &self.last_activity)
+            .field("auto_lock_timeout", &self.auto_lock_timeout)
+            .finish()
+    }
 }
 
 impl Vault {
@@ -46,11 +98,50 @@ impl Vault {
             header: None,
             dek: None,
             vault_dir: None,
+            last_activity: None,
+            auto_lock_timeout: None,
         }
+    }
+
+    pub fn with_auto_lock_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.auto_lock_timeout = Some(timeout);
+        self
     }
 
     pub fn state(&self) -> &VaultState {
         &self.state
+    }
+
+    fn transition(&mut self, next: VaultState) -> Result<(), String> {
+        if !self.state.can_transition_to(&next) {
+            return Err(format!(
+                "Invalid state transition: {:?} -> {:?}",
+                self.state, next
+            ));
+        }
+        self.state = next;
+        Ok(())
+    }
+
+    fn update_activity(&mut self) {
+        self.last_activity = Some(std::time::Instant::now());
+    }
+
+    pub fn should_auto_lock(&self) -> bool {
+        if let (Some(timeout), Some(last_activity)) = (self.auto_lock_timeout, self.last_activity) {
+            last_activity.elapsed() >= timeout
+        } else {
+            false
+        }
+    }
+
+    pub fn check_and_auto_lock(&mut self) -> Result<bool, String> {
+        if self.should_auto_lock() && self.state == VaultState::Unlocked {
+            self.lock()?;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
     }
 
     pub fn create(password: &str, vault_dir: &Path) -> Result<Self, String> {
@@ -95,11 +186,34 @@ impl Vault {
             header: Some(header),
             dek: None,
             vault_dir: Some(vault_dir.to_path_buf()),
+            last_activity: None,
+            auto_lock_timeout: None,
+        })
+    }
+
+    pub fn open(vault_dir: &Path) -> Result<Self, String> {
+        let header_path = vault_dir.join("vault.json");
+        if !header_path.exists() {
+            return Err("Vault does not exist".to_string());
+        }
+
+        let header_json = fs::read_to_string(&header_path)
+            .map_err(|e| format!("Failed to read vault header: {e}"))?;
+        let header: VaultHeader = serde_json::from_str(&header_json)
+            .map_err(|e| format!("Failed to parse vault header: {e}"))?;
+
+        Ok(Self {
+            state: VaultState::Locked,
+            header: Some(header),
+            dek: None,
+            vault_dir: Some(vault_dir.to_path_buf()),
+            last_activity: None,
+            auto_lock_timeout: None,
         })
     }
 
     pub fn unlock(&mut self, password: &str) -> Result<(), String> {
-        self.state = VaultState::Unlocking;
+        self.transition(VaultState::Unlocking)?;
 
         let vault_dir = self.vault_dir.as_ref().ok_or("No vault directory")?;
         let header_path = vault_dir.join("vault.json");
@@ -119,7 +233,7 @@ impl Vault {
         tag_arr.copy_from_slice(&verification_tag);
 
         if !crypto::verify_password(password, &salt_arr, &tag_arr) {
-            self.state = VaultState::Error;
+            let _ = self.transition(VaultState::Error);
             return Err("Invalid password".to_string());
         }
 
@@ -134,14 +248,32 @@ impl Vault {
         let dek = crypto::unwrap_key(&wrapped_arr, &kek, &nonce_arr)?;
 
         self.header = Some(header);
-        self.dek = Some(dek);
-        self.state = VaultState::Unlocked;
+        self.dek = Some(ZeroizeKey(dek));
+        self.update_activity();
+        self.transition(VaultState::Unlocked)?;
         Ok(())
     }
 
-    pub fn lock(&mut self) {
-        self.dek = None;
-        self.state = VaultState::Locked;
+    pub fn lock(&mut self) -> Result<(), String> {
+        match self.state {
+            VaultState::Locked | VaultState::Error => {
+                self.dek = None;
+                self.state = VaultState::Locked;
+                Ok(())
+            }
+            VaultState::Unlocked => {
+                self.transition(VaultState::Locking)?;
+                if let Some(mut key) = self.dek.take() {
+                    key.zeroize();
+                }
+                self.transition(VaultState::Locked)?;
+                Ok(())
+            }
+            _ => Err(format!(
+                "Cannot lock in state {:?}",
+                self.state
+            )),
+        }
     }
 
     pub fn is_unlocked(&self) -> bool {
@@ -186,7 +318,7 @@ mod tests {
     #[test]
     fn vault_locks() {
         let mut vault = Vault::new();
-        vault.lock();
+        vault.lock().unwrap();
         assert_eq!(vault.state(), &VaultState::Locked);
     }
 
@@ -201,7 +333,7 @@ mod tests {
         vault.unlock("password").unwrap();
         assert!(vault.is_unlocked());
 
-        vault.lock();
+        vault.lock().unwrap();
         assert!(!vault.is_unlocked());
     }
 
@@ -239,5 +371,168 @@ mod tests {
         let header: VaultHeader = serde_json::from_str(&content).unwrap();
         assert_eq!(header.version, 1);
         assert_eq!(header.kdf, "argon2id");
+    }
+
+    #[test]
+    fn cannot_unlock_when_unlocked() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("password", vault_dir).unwrap();
+        vault.unlock("password").unwrap();
+        assert!(vault.is_unlocked());
+
+        let result = vault.unlock("password");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid state transition"));
+    }
+
+    #[test]
+    fn cannot_lock_when_locked() {
+        let mut vault = Vault::new();
+        let result = vault.lock();
+        assert!(result.is_ok());
+        assert_eq!(vault.state(), &VaultState::Locked);
+    }
+
+    #[test]
+    fn cannot_unlock_when_locking() {
+        let mut vault = Vault::new();
+        vault.state = VaultState::Locking;
+        let result = vault.unlock("password");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn cannot_lock_when_unlocking() {
+        let mut vault = Vault::new();
+        vault.state = VaultState::Unlocking;
+        let result = vault.lock();
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn error_can_transition_to_locked() {
+        let mut vault = Vault::new();
+        vault.state = VaultState::Error;
+        vault.lock().unwrap();
+        assert_eq!(vault.state(), &VaultState::Locked);
+    }
+
+    #[test]
+    fn error_can_transition_to_unlocking() {
+        let mut vault = Vault::new();
+        vault.state = VaultState::Error;
+        let result = vault.transition(VaultState::Unlocking);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn state_transition_validation() {
+        assert!(VaultState::Locked.can_transition_to(&VaultState::Unlocking));
+        assert!(VaultState::Locked.can_transition_to(&VaultState::Locked));
+        assert!(!VaultState::Locked.can_transition_to(&VaultState::Unlocked));
+        assert!(!VaultState::Locked.can_transition_to(&VaultState::Locking));
+
+        assert!(VaultState::Unlocking.can_transition_to(&VaultState::Unlocked));
+        assert!(VaultState::Unlocking.can_transition_to(&VaultState::Error));
+        assert!(!VaultState::Unlocking.can_transition_to(&VaultState::Locked));
+
+        assert!(VaultState::Unlocked.can_transition_to(&VaultState::Locking));
+        assert!(!VaultState::Unlocked.can_transition_to(&VaultState::Locked));
+        assert!(!VaultState::Unlocked.can_transition_to(&VaultState::Unlocking));
+
+        assert!(VaultState::Locking.can_transition_to(&VaultState::Locked));
+        assert!(!VaultState::Locking.can_transition_to(&VaultState::Unlocked));
+
+        assert!(VaultState::Error.can_transition_to(&VaultState::Locked));
+        assert!(VaultState::Error.can_transition_to(&VaultState::Unlocking));
+        assert!(!VaultState::Error.can_transition_to(&VaultState::Unlocked));
+    }
+
+    #[test]
+    fn vault_open_existing() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        Vault::create("password", vault_dir).unwrap();
+
+        let vault = Vault::open(vault_dir).unwrap();
+        assert_eq!(vault.state(), &VaultState::Locked);
+        assert!(!vault.is_unlocked());
+    }
+
+    #[test]
+    fn vault_open_nonexistent_fails() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let result = Vault::open(vault_dir);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("does not exist"));
+    }
+
+    #[test]
+    fn vault_open_and_unlock() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        Vault::create("password", vault_dir).unwrap();
+
+        let mut vault = Vault::open(vault_dir).unwrap();
+        vault.unlock("password").unwrap();
+        assert!(vault.is_unlocked());
+
+        vault.lock().unwrap();
+        assert!(!vault.is_unlocked());
+    }
+
+    #[test]
+    fn auto_lock_timeout() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("password", vault_dir)
+            .unwrap()
+            .with_auto_lock_timeout(std::time::Duration::from_millis(50));
+
+        vault.unlock("password").unwrap();
+        assert!(vault.is_unlocked());
+        assert!(!vault.should_auto_lock());
+
+        std::thread::sleep(std::time::Duration::from_millis(100));
+
+        assert!(vault.should_auto_lock());
+        let locked = vault.check_and_auto_lock().unwrap();
+        assert!(locked);
+        assert!(!vault.is_unlocked());
+    }
+
+    #[test]
+    fn auto_lock_not_triggered_without_timeout() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("password", vault_dir).unwrap();
+        vault.unlock("password").unwrap();
+
+        std::thread::sleep(std::time::Duration::from_millis(50));
+
+        assert!(!vault.should_auto_lock());
+        let locked = vault.check_and_auto_lock().unwrap();
+        assert!(!locked);
+        assert!(vault.is_unlocked());
+    }
+
+    #[test]
+    fn auto_lock_only_when_unlocked() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let vault = Vault::create("password", vault_dir)
+            .unwrap()
+            .with_auto_lock_timeout(std::time::Duration::from_millis(0));
+
+        assert!(!vault.should_auto_lock());
     }
 }
