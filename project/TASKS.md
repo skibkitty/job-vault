@@ -248,7 +248,7 @@ This task requires human review before implementation if the agent encounters am
 
 ## TASK-011 — Database abstraction
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-008 (DONE), TASK-010 (DONE)
 
@@ -256,13 +256,20 @@ Goal:
 
 Create storage abstraction and schema foundation.
 
+Acceptance criteria:
+
+- [x] Storage trait/abstraction exists.
+- [x] SQLite schema for job, job_snapshot, job_changeset.
+- [x] Schema creation is idempotent.
+- [x] Tests pass.
+
 ---
 
 ## TASK-012 — Vault initialization
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-010, TASK-011
+Dependencies: TASK-010 (DONE), TASK-011 (DONE)
 
 Goal:
 

@@ -1,19 +1,34 @@
+pub mod schema;
+pub mod sqlite;
+
+pub use sqlite::SqliteStorage;
+
 use std::path::Path;
 
 pub struct Database {
-    _path: std::path::PathBuf,
+    storage: Option<SqliteStorage>,
+    path: std::path::PathBuf,
 }
 
 impl Database {
-    pub fn new(_path: &Path) -> Self {
+    pub fn new(path: &Path) -> Self {
         Self {
-            _path: _path.to_path_buf(),
+            storage: None,
+            path: path.to_path_buf(),
         }
     }
 
-    pub fn initialize(&self) -> Result<(), String> {
-        // TODO: create schema
+    pub fn initialize(&mut self) -> Result<(), String> {
+        let storage = SqliteStorage::open(&self.path)?;
+        storage.initialize()?;
+        self.storage = Some(storage);
         Ok(())
+    }
+
+    pub fn storage(&self) -> Result<&SqliteStorage, String> {
+        self.storage
+            .as_ref()
+            .ok_or_else(|| "Database not initialized".to_string())
     }
 }
 
@@ -24,7 +39,14 @@ mod tests {
 
     #[test]
     fn database_creates() {
-        let db = Database::new(&PathBuf::from(":memory:"));
+        let mut db = Database::new(&PathBuf::from(":memory:"));
         assert!(db.initialize().is_ok());
+        assert!(db.storage().is_ok());
+    }
+
+    #[test]
+    fn database_uninitialized_returns_error() {
+        let db = Database::new(&PathBuf::from(":memory:"));
+        assert!(db.storage().is_err());
     }
 }

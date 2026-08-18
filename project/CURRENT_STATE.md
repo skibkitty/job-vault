@@ -14,11 +14,11 @@ Phase 0 — Foundation
 
 ## Current task
 
-TASK-011 (READY)
+TASK-012 (READY)
 
 ## Recommended next action
 
-TASK-011 — Database abstraction.
+TASK-012 — Vault initialization.
 
 ## Completed
 
@@ -38,6 +38,7 @@ TASK-011 — Database abstraction.
 - Rust companion scaffolded and verified (TASK-008).
 - Native Messaging protocol implemented (TASK-009).
 - Vault cryptographic design finalized (TASK-010).
+- Database abstraction created (TASK-011).
 
 ## Not yet implemented
 

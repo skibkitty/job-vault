@@ -9,18 +9,22 @@ Date:
 2026-08-18
 
 Task:
-TASK-010
+TASK-011
 
 ## What has been done
 
-- Created ADR-005: Vault Cryptographic Design.
-- Selected: Argon2id KDF, AES-256-GCM AEAD, ring/argon2/rand crates.
-- Documented: key hierarchy, nonce handling, password verification, vault header format.
-- Added crypto dependencies to companion/Cargo.toml.
+- Created database abstraction with SqliteStorage.
+- Created schema for job, job_snapshot, job_changeset tables with indexes.
+- Schema creation is idempotent.
+- Added rusqlite dependency.
+- 20 tests pass.
 
 ## What works
 
-ADR-005 documents the complete cryptographic design.
+- Database opens and initializes
+- Schema creates tables and indexes
+- Tables are idempotent (can be created multiple times)
+- Storage abstraction wraps Connection with Mutex for thread safety
 
 ## What does not work
 
@@ -28,26 +32,27 @@ Nothing broken.
 
 ## Tests run
 
-None (documentation-only changes).
+- `cargo test` — 20 passed
 
 ## Files changed
 
-- docs/decisions/ADR-005-vault-crypto.md (new)
 - companion/Cargo.toml
+- companion/src/database/mod.rs
+- companion/src/database/schema.rs
+- companion/src/database/sqlite.rs
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-The design follows ADR-005. Password verification uses HMAC-SHA256 rather than encrypting a known plaintext.
+- Used `rusqlite` with `bundled` feature for self-contained SQLite build.
 
 ## Decisions
 
-- Argon2id over scrypt/PBKDF2 (memory-hard)
-- AES-256-GCM over ChaCha20-Poly1305 (hardware acceleration on desktop)
-- HMAC-SHA256 for password verification (avoids leaking information)
-- Vault header stored as JSON for readability/debuggability
+- Mutex-wrapped Connection for thread safety.
+- WAL journal mode for concurrent reads.
+- Foreign keys enabled.
 
 ## Known risks
 
@@ -55,13 +60,13 @@ None.
 
 ## Next recommended action
 
-TASK-011 — Database abstraction.
+TASK-012 — Vault initialization.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
 2. Read docs/decisions/ADR-005-vault-crypto.md for cryptographic design.
-3. Implement TASK-011.
+3. Implement TASK-012.
 
 ## Blockers
 
