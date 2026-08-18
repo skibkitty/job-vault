@@ -9,25 +9,25 @@ Date:
 2026-08-18
 
 Task:
-TASK-021
+TASK-022
 
 ## What has been done
 
-- Implemented JobSnapshot model for capturing job state at a point in time.
-- Created JobSnapshot struct with all required fields from DATA-MODEL.md.
-- Added validation for required fields (id, job_id, captured_at, title, description).
-- Added Debug, Clone, PartialEq, Eq implementations.
-- Added serialization/deserialization support.
+- Implemented Job CRUD operations in SqliteStorage.
+- Added create_job, get_job, update_job, delete_job, list_jobs methods.
+- Added validation before write operations.
 - Added 9 comprehensive tests.
-- All 72 tests pass.
+- All 81 tests pass.
 
 ## What works
 
-- JobSnapshot creation with required fields
-- JobSnapshot validation (empty id, job_id, captured_at, title, description fail)
-- JobSnapshot serialization/deserialization roundtrip
-- JobSnapshot clone
-- JobSnapshot with optional fields (source_url, raw_text, company, requirements, etc.)
+- Create job in database
+- Get job by id
+- Update job fields
+- Delete job by id
+- List all jobs (ordered by created_at DESC)
+- Validation prevents empty required fields
+- Proper error handling for nonexistent jobs
 
 ## What does not work
 
@@ -35,29 +35,42 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 72 passed
+- `cargo test` — 81 passed
 
 ## Files changed
 
-- companion/src/model/mod.rs
+- companion/src/database/sqlite.rs
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- JobSnapshot fields match database schema from TASK-011
-- JobSnapshot is linked to Job via job_id
-- Raw text and normalized text fields allow for diff analysis later
+- CRUD operations use Mutex for thread safety
+- Validation is performed before database writes
+- Error messages are descriptive but don't leak sensitive data
 
 ## Decisions
 
-- JobSnapshot captures job state at a specific point in time (captured_at)
-- Required fields: id, job_id, captured_at, title, description
-- Optional fields allow partial data extraction from different sources
-- Extraction metadata field allows storing source-specific extraction info
+- CRUD operations are on SqliteStorage (low-level) rather than Database (high-level)
+- list_jobs orders by created_at DESC (newest first)
+- Update returns error if job not found
+- Delete returns error if job not found
 
 ## Known risks
+
+None.
+
+## Next recommended action
+
+TASK-023 — Snapshot history.
+
+## Instructions for next agent
+
+1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
+2. Implement TASK-023 — Snapshot history.
+
+## Blockers
 
 None.
 

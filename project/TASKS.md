@@ -377,7 +377,7 @@ Acceptance criteria:
 
 ## TASK-022 — Job CRUD
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-021 (DONE), TASK-013 (DONE)
 
@@ -387,18 +387,31 @@ Implement Create, Read, Update, Delete operations for Job entities.
 
 Acceptance criteria:
 
-- [ ] Job CRUD operations (create, get_by_id, update, delete)
-- [ ] Jobs are stored in SQLite database
-- [ ] CRUD operations work through vault abstraction
-- [ ] Validation before write operations
-- [ ] Tests for all CRUD operations
-- [ ] All tests pass
+- [x] Job CRUD operations (create, get_by_id, update, delete)
+- [x] Jobs are stored in SQLite database
+- [x] CRUD operations work through vault abstraction
+- [x] Validation before write operations
+- [x] Tests for all CRUD operations
+- [x] All tests pass
 
 ## TASK-023 — Snapshot history
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-022
+Dependencies: TASK-022 (DONE)
+
+Goal:
+
+Implement operations for managing job snapshot history.
+
+Acceptance criteria:
+
+- [ ] Create snapshots for jobs
+- [ ] Get snapshot history for a job
+- [ ] Get specific snapshot by id
+- [ ] Snapshots are linked to jobs via job_id
+- [ ] Tests for snapshot operations
+- [ ] All tests pass
 
 ## TASK-024 — Local job search
 
