@@ -45,7 +45,7 @@ TASK-002.
 
 ## TASK-002 — Establish agent/project documentation
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-001 (DONE)
 
@@ -55,18 +55,18 @@ Create and validate `AGENTS.md`, task management files, handoff workflow, and pr
 
 Acceptance criteria:
 
-- [ ] Agent instructions are present.
-- [ ] Task registry is machine-readable enough for humans and agents.
-- [ ] Handoff format is documented.
-- [ ] Current-state format is documented.
-- [ ] Agent workflow is documented.
-- [ ] No ambiguity exists about how to choose the next task.
+- [x] Agent instructions are present.
+- [x] Task registry is machine-readable enough for humans and agents.
+- [x] Handoff format is documented.
+- [x] Current-state format is documented.
+- [x] Agent workflow is documented.
+- [x] No ambiguity exists about how to choose the next task.
 
 ---
 
 ## TASK-003 — Create architecture documentation
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-001 (DONE)
 
@@ -76,20 +76,20 @@ Turn the architecture plan into implementation-ready documentation.
 
 Acceptance criteria:
 
-- [ ] Component boundaries documented.
-- [ ] Extension/companion boundary documented.
-- [ ] Adapter architecture documented.
-- [ ] Storage abstraction documented.
-- [ ] Diff architecture documented.
-- [ ] Future extension points documented.
+- [x] Component boundaries documented.
+- [x] Extension/companion boundary documented.
+- [x] Adapter architecture documented.
+- [x] Storage abstraction documented.
+- [x] Diff architecture documented.
+- [x] Future extension points documented.
 
 ---
 
 ## TASK-004 — Create threat model
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-003
+Dependencies: TASK-003 (DONE)
 
 Goal:
 
@@ -110,9 +110,9 @@ Acceptance criteria:
 
 ## TASK-005 — Create security specification
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-004
+Dependencies: TASK-004 (READY)
 
 Goal:
 
@@ -136,9 +136,9 @@ Do not invent cryptographic parameters without reviewing current library guidanc
 
 ## TASK-006 — Create permission policy
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-003
+Dependencies: TASK-003 (DONE)
 
 Goal:
 

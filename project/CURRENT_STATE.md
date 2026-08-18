@@ -14,11 +14,11 @@ Phase 0 — Foundation
 
 ## Current task
 
-TASK-001
+TASK-004 / TASK-005 / TASK-006 (all READY)
 
 ## Recommended next action
 
-TASK-001 complete. Next: TASK-002 (agent/project documentation) or TASK-003 (architecture documentation) — both are READY.
+TASK-004 (threat model), TASK-005 (security spec), or TASK-006 (permission policy). TASK-005 depends on TASK-004, so do TASK-004 first, then TASK-005. TASK-006 is independent.
 
 ## Completed
 
@@ -28,7 +28,9 @@ TASK-001 complete. Next: TASK-002 (agent/project documentation) or TASK-003 (arc
 - LinkedIn, Indeed, and generic company career pages selected as initial sources.
 - Encrypted vault requirement established.
 - Multi-agent handoff model established.
-- Repository initialized with directory structure.
+- Repository initialized with directory structure (TASK-001).
+- Agent/project documentation validated (TASK-002).
+- Architecture documentation validated (TASK-003).
 
 ## Not yet implemented
 
