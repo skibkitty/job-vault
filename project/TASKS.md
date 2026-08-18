@@ -221,7 +221,7 @@ Acceptance criteria:
 
 ## TASK-010 — Finalize vault cryptographic design
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-005 (DONE), TASK-008 (DONE)
 
@@ -231,14 +231,14 @@ Finalize the exact cryptographic implementation plan using established libraries
 
 Acceptance criteria:
 
-- [ ] KDF selected.
-- [ ] AEAD/encryption scheme selected.
-- [ ] key hierarchy documented.
-- [ ] nonce/IV handling documented.
-- [ ] randomness requirements documented.
-- [ ] password verification approach documented.
-- [ ] library choice documented.
-- [ ] no custom cryptography required.
+- [x] KDF selected.
+- [x] AEAD/encryption scheme selected.
+- [x] key hierarchy documented.
+- [x] nonce/IV handling documented.
+- [x] randomness requirements documented.
+- [x] password verification approach documented.
+- [x] library choice documented.
+- [x] no custom cryptography required.
 
 This task requires human review before implementation if the agent encounters ambiguity.
 
@@ -248,9 +248,9 @@ This task requires human review before implementation if the agent encounters am
 
 ## TASK-011 — Database abstraction
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-008, TASK-010
+Dependencies: TASK-008 (DONE), TASK-010 (DONE)
 
 Goal:
 

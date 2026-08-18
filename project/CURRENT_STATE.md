@@ -14,11 +14,11 @@ Phase 0 — Foundation
 
 ## Current task
 
-TASK-010 (READY)
+TASK-011 (READY)
 
 ## Recommended next action
 
-TASK-010 — Finalize vault cryptographic design. This requires human review if ambiguity is encountered.
+TASK-011 — Database abstraction.
 
 ## Completed
 
@@ -37,6 +37,7 @@ TASK-010 — Finalize vault cryptographic design. This requires human review if 
 - Chrome extension scaffolded (TASK-007).
 - Rust companion scaffolded and verified (TASK-008).
 - Native Messaging protocol implemented (TASK-009).
+- Vault cryptographic design finalized (TASK-010).
 
 ## Not yet implemented
 
