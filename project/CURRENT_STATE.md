@@ -14,11 +14,11 @@ Phase 0 — Foundation
 
 ## Current task
 
-TASK-012 (READY)
+TASK-013 (READY)
 
 ## Recommended next action
 
-TASK-012 — Vault initialization.
+TASK-013 — Vault unlock/lock.
 
 ## Completed
 
@@ -39,6 +39,7 @@ TASK-012 — Vault initialization.
 - Native Messaging protocol implemented (TASK-009).
 - Vault cryptographic design finalized (TASK-010).
 - Database abstraction created (TASK-011).
+- Vault initialization implemented (TASK-012).
 
 ## Not yet implemented
 

@@ -267,7 +267,7 @@ Acceptance criteria:
 
 ## TASK-012 — Vault initialization
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-010 (DONE), TASK-011 (DONE)
 
@@ -275,13 +275,23 @@ Goal:
 
 Create a new encrypted vault from a user password.
 
+Acceptance criteria:
+
+- [x] Vault created from password.
+- [x] Salt, KEK, DEK generated.
+- [x] DEK encrypted under KEK.
+- [x] Verification tag computed.
+- [x] Vault header written as JSON.
+- [x] Wrong password fails.
+- [x] Tests pass.
+
 ---
 
 ## TASK-013 — Vault unlock/lock
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-012
+Dependencies: TASK-012 (DONE)
 
 Goal:
 

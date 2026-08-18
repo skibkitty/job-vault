@@ -9,22 +9,24 @@ Date:
 2026-08-18
 
 Task:
-TASK-011
+TASK-012
 
 ## What has been done
 
-- Created database abstraction with SqliteStorage.
-- Created schema for job, job_snapshot, job_changeset tables with indexes.
-- Schema creation is idempotent.
-- Added rusqlite dependency.
-- 20 tests pass.
+- Implemented vault initialization: create vault from password.
+- Created crypto module: Argon2id KDF, AES-256-GCM AEAD, HMAC-SHA256 verification.
+- Vault writes JSON header with salt, verification tag, encrypted DEK.
+- Vault unlock derives KEK, verifies password, unwraps DEK.
+- 30 tests pass.
 
 ## What works
 
-- Database opens and initializes
-- Schema creates tables and indexes
-- Tables are idempotent (can be created multiple times)
-- Storage abstraction wraps Connection with Mutex for thread safety
+- Vault creation from password
+- Password verification via HMAC-SHA256
+- DEK wrap/unwrap with AES-256-GCM
+- Vault header persistence as JSON
+- Wrong password fails safely
+- Vault cannot be created twice
 
 ## What does not work
 
@@ -32,27 +34,27 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 20 passed
+- `cargo test` — 30 passed
 
 ## Files changed
 
 - companion/Cargo.toml
-- companion/src/database/mod.rs
-- companion/src/database/schema.rs
-- companion/src/database/sqlite.rs
+- companion/src/main.rs
+- companion/src/crypto/mod.rs (new)
+- companion/src/vault/mod.rs
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- Used `rusqlite` with `bundled` feature for self-contained SQLite build.
+- argon2 crate `Params::new` takes `(m_cost, t_cost, p_cost, output_len)` not `(t_cost, m_cost, ...)`.
+- base64ct `encode` returns a `&str` slice into the buffer, not the full buffer.
 
 ## Decisions
 
-- Mutex-wrapped Connection for thread safety.
-- WAL journal mode for concurrent reads.
-- Foreign keys enabled.
+- Vault header stored as JSON for debuggability.
+- base64ct for encoding binary data in JSON header.
 
 ## Known risks
 
@@ -60,13 +62,12 @@ None.
 
 ## Next recommended action
 
-TASK-012 — Vault initialization.
+TASK-013 — Vault unlock/lock.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Read docs/decisions/ADR-005-vault-crypto.md for cryptographic design.
-3. Implement TASK-012.
+2. Implement TASK-013.
 
 ## Blockers
 
