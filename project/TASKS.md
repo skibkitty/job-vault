@@ -176,7 +176,7 @@ Acceptance criteria:
 
 ## TASK-008 — Scaffold Rust companion
 
-Status: REVIEW
+Status: DONE
 Priority: P0
 Dependencies: TASK-003 (DONE), TASK-005 (DONE)
 
@@ -186,22 +186,22 @@ Create the local companion process with clean module boundaries.
 
 Acceptance criteria:
 
-- [ ] Companion builds. (needs Rust to verify)
-- [ ] Tests run. (needs Rust to verify)
+- [x] Companion builds.
+- [x] Tests run.
 - [x] Vault module boundary exists.
 - [x] Database module boundary exists.
 - [x] IPC module boundary exists.
 - [x] No network server is created.
 
-Note: Rust is not installed in the current environment. Scaffold is structurally complete but build/test cannot be verified until Rust is available.
+Note: Rust build toolchain (MSVC) required installation of Visual Studio Build Tools.
 
 ---
 
 ## TASK-009 — Implement Native Messaging protocol
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-007, TASK-008
+Dependencies: TASK-007 (DONE), TASK-008 (DONE)
 
 Goal:
 

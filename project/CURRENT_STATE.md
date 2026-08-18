@@ -14,11 +14,11 @@ Phase 0 — Foundation
 
 ## Current task
 
-TASK-008 (REVIEW — needs Rust to verify build)
+TASK-009 (READY)
 
 ## Recommended next action
 
-Install Rust and run `cargo build` / `cargo test` on the companion to verify TASK-008. Then TASK-009 (Native Messaging) becomes READY.
+TASK-009 — Implement Native Messaging protocol.
 
 ## Completed
 
@@ -35,7 +35,7 @@ Install Rust and run `cargo build` / `cargo test` on the companion to verify TAS
 - Security specification validated (TASK-005).
 - Permission policy created (TASK-006).
 - Chrome extension scaffolded (TASK-007).
-- Rust companion scaffolded (TASK-008 — needs verification).
+- Rust companion scaffolded and verified (TASK-008).
 
 ## Not yet implemented
 
