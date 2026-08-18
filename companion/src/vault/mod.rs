@@ -535,4 +535,202 @@ mod tests {
 
         assert!(!vault.should_auto_lock());
     }
+
+    #[test]
+    fn multiple_wrong_passwords_fail_safely() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("password", vault_dir).unwrap();
+
+        let wrong_passwords = ["wrong1", "wrong2", "wrong3", ""];
+        for pw in wrong_passwords {
+            let result = vault.unlock(pw);
+            assert!(result.is_err());
+            assert!(result.unwrap_err().contains("Invalid password"));
+            assert_eq!(vault.state(), &VaultState::Error);
+        }
+    }
+
+    #[test]
+    fn recovery_from_error_via_lock() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("password", vault_dir).unwrap();
+        vault.unlock("wrong").unwrap_err();
+        assert_eq!(vault.state(), &VaultState::Error);
+
+        vault.lock().unwrap();
+        assert_eq!(vault.state(), &VaultState::Locked);
+
+        vault.unlock("password").unwrap();
+        assert!(vault.is_unlocked());
+    }
+
+    #[test]
+    fn corrupted_header_json_fails() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        Vault::create("password", vault_dir).unwrap();
+        let header_path = vault_dir.join("vault.json");
+        fs::write(&header_path, "{invalid json").unwrap();
+
+        let result = Vault::open(vault_dir);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn corrupted_salt_fails() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        Vault::create("password", vault_dir).unwrap();
+        let header_path = vault_dir.join("vault.json");
+        let content = fs::read_to_string(&header_path).unwrap();
+        let mut header: VaultHeader = serde_json::from_str(&content).unwrap();
+        header.salt = "not-valid-base64!!!".to_string();
+        fs::write(&header_path, serde_json::to_string_pretty(&header).unwrap()).unwrap();
+
+        let mut vault = Vault::open(vault_dir).unwrap();
+        let result = vault.unlock("password");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn corrupted_verification_tag_fails() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        Vault::create("password", vault_dir).unwrap();
+        let header_path = vault_dir.join("vault.json");
+        let content = fs::read_to_string(&header_path).unwrap();
+        let mut header: VaultHeader = serde_json::from_str(&content).unwrap();
+        header.verification_tag = "!!!".to_string();
+        fs::write(&header_path, serde_json::to_string_pretty(&header).unwrap()).unwrap();
+
+        let mut vault = Vault::open(vault_dir).unwrap();
+        let result = vault.unlock("password");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn corrupted_encrypted_dek_fails() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        Vault::create("password", vault_dir).unwrap();
+        let header_path = vault_dir.join("vault.json");
+        let content = fs::read_to_string(&header_path).unwrap();
+        let mut header: VaultHeader = serde_json::from_str(&content).unwrap();
+        header.encrypted_dek = "!!!".to_string();
+        fs::write(&header_path, serde_json::to_string_pretty(&header).unwrap()).unwrap();
+
+        let mut vault = Vault::open(vault_dir).unwrap();
+        let result = vault.unlock("password");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn corrupted_encrypted_dek_nonce_fails() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        Vault::create("password", vault_dir).unwrap();
+        let header_path = vault_dir.join("vault.json");
+        let content = fs::read_to_string(&header_path).unwrap();
+        let mut header: VaultHeader = serde_json::from_str(&content).unwrap();
+        header.encrypted_dek_nonce = "!!!".to_string();
+        fs::write(&header_path, serde_json::to_string_pretty(&header).unwrap()).unwrap();
+
+        let mut vault = Vault::open(vault_dir).unwrap();
+        let result = vault.unlock("password");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn missing_header_file_fails() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("password", vault_dir).unwrap();
+        let header_path = vault_dir.join("vault.json");
+        fs::remove_file(&header_path).unwrap();
+
+        let result = vault.unlock("password");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn multiple_lock_unlock_cycles() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("password", vault_dir).unwrap();
+
+        for i in 0..10 {
+            vault.unlock("password").unwrap();
+            assert!(vault.is_unlocked(), "Should be unlocked at cycle {i}");
+
+            vault.lock().unwrap();
+            assert!(!vault.is_unlocked(), "Should be locked at cycle {i}");
+        }
+    }
+
+    #[test]
+    fn lock_unlock_with_reopen() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        Vault::create("password", vault_dir).unwrap();
+
+        for _ in 0..5 {
+            let mut vault = Vault::open(vault_dir).unwrap();
+            vault.unlock("password").unwrap();
+            assert!(vault.is_unlocked());
+            vault.lock().unwrap();
+        }
+
+        let mut vault = Vault::open(vault_dir).unwrap();
+        vault.unlock("password").unwrap();
+        assert!(vault.is_unlocked());
+    }
+
+    #[test]
+    fn error_messages_do_not_leak_sensitive_data() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("mysecretpassword", vault_dir).unwrap();
+
+        let wrong_result = vault.unlock("wrongpassword").unwrap_err();
+        assert!(!wrong_result.contains("mysecretpassword"));
+        assert!(!wrong_result.contains("wrongpassword"));
+        assert!(!wrong_result.contains("dek"));
+        assert!(!wrong_result.contains("kek"));
+    }
+
+    #[test]
+    fn vault_state_consistent_after_failed_unlock() {
+        let tmp = TempDir::new().unwrap();
+        let vault_dir = tmp.path();
+
+        let mut vault = Vault::create("password", vault_dir).unwrap();
+
+        vault.unlock("wrong").unwrap_err();
+        vault.lock().unwrap();
+
+        vault.unlock("password").unwrap();
+        assert!(vault.is_unlocked());
+
+        vault.lock().unwrap();
+        assert!(!vault.is_unlocked());
+
+        vault.unlock("wrong").unwrap_err();
+        vault.lock().unwrap();
+
+        vault.unlock("password").unwrap();
+        assert!(vault.is_unlocked());
+    }
 }

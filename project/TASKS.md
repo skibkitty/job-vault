@@ -314,7 +314,7 @@ Acceptance criteria:
 
 ## TASK-014 — Encrypted persistence tests
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-013 (DONE)
 
@@ -322,15 +322,39 @@ Goal:
 
 Test wrong passwords, corruption, lock/unlock cycles, and sensitive-data absence from logs.
 
+Acceptance criteria:
+
+- [x] Multiple wrong password attempts fail safely and leave vault in Error state
+- [x] Recovery from Error state via lock() works
+- [x] Vault header corruption (tampered JSON, invalid fields) detected and fails gracefully
+- [x] Multiple lock/unlock cycles work correctly
+- [x] Lock/unlock cycles preserve vault integrity
+- [x] No sensitive data (DEK, password, KEK) appears in error messages
+- [x] Vault state is consistent after failed unlock attempts
+- [x] All tests pass
+
 ---
 
 # Phase 2 — Job model
 
 ## TASK-020 — Job domain model
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-011
+Dependencies: TASK-011 (DONE)
+
+Goal:
+
+Define and implement the core Job domain model with all required fields and validation.
+
+Acceptance criteria:
+
+- [ ] Job struct with all required fields (id, title, company, location, url, description, etc.)
+- [ ] Job fields have appropriate types and validation
+- [ ] Job can be serialized/deserialized
+- [ ] Job has proper Debug and Clone implementations
+- [ ] Tests for Job creation and validation
+- [ ] All tests pass
 
 ## TASK-021 — JobSnapshot model
 
