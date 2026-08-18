@@ -9,27 +9,24 @@ Date:
 2026-08-18
 
 Task:
-TASK-014
+TASK-020
 
 ## What has been done
 
-- Implemented encrypted persistence tests for vault lifecycle.
-- Added tests for wrong password attempts (multiple failures, recovery).
-- Added tests for vault header corruption (invalid JSON, tampered fields).
-- Added tests for lock/unlock cycles (10 cycles, reopen cycles).
-- Added tests for sensitive data absence from error messages.
-- Added tests for vault state consistency after failed attempts.
-- All 55 tests pass.
+- Implemented Job domain model with all required fields.
+- Created Job struct with serialization/deserialization support.
+- Added validation for required fields (id, title, created_at, updated_at).
+- Added Debug, Clone, PartialEq, Eq implementations.
+- Added 8 comprehensive tests.
+- All 63 tests pass.
 
 ## What works
 
-- Wrong password attempts fail safely and leave vault in Error state
-- Recovery from Error state via lock() works correctly
-- Vault header corruption (invalid JSON, tampered salt/tag/DEK/nonce) detected and fails gracefully
-- Multiple lock/unlock cycles work correctly
-- Lock/unlock cycles preserve vault integrity
-- No sensitive data (DEK, password, KEK) appears in error messages
-- Vault state is consistent after failed unlock attempts
+- Job creation with required fields
+- Job validation (empty id, title, created_at, updated_at fail)
+- Job serialization/deserialization roundtrip
+- Job clone
+- Job with optional fields (company_id, canonical_url, location, etc.)
 
 ## What does not work
 
@@ -37,26 +34,28 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 55 passed
+- `cargo test` — 63 passed
 
 ## Files changed
 
-- companion/src/vault/mod.rs
+- companion/src/model/mod.rs (new)
+- companion/src/main.rs
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- Vault::open() parses header on open, so corrupted JSON fails at open time, not unlock time
-- Error messages should not contain actual secret values, only generic descriptions
-- Lock/unlock cycles are slow due to Argon2id KDF (expected behavior for security)
+- Job model fields match database schema from TASK-011
+- Validation is lightweight and can be extended as needed
+- Optional fields allow partial job data from different sources
 
 ## Decisions
 
-- Tests verify error messages don't leak actual passwords or key material
-- Corrupted header tests cover both parse errors (invalid JSON) and semantic errors (invalid field values)
-- Lock/unlock cycle tests use 10 iterations to verify long-term stability
+- Job id is a String (UUID or other format) for flexibility
+- Timestamps are String format (ISO 8601 or similar) for serialization
+- Validation is separate from construction for flexibility
+- Job implements standard traits (Debug, Clone, Serialize, Deserialize)
 
 ## Known risks
 
@@ -64,12 +63,12 @@ None.
 
 ## Next recommended action
 
-TASK-020 — Job domain model.
+TASK-021 — JobSnapshot model.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-020 — Job domain model.
+2. Implement TASK-021 — JobSnapshot model.
 
 ## Blockers
 

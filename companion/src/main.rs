@@ -1,6 +1,7 @@
 mod crypto;
 mod database;
 mod ipc;
+mod model;
 mod vault;
 
 fn main() {
