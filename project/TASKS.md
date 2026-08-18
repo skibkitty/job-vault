@@ -199,7 +199,7 @@ Note: Rust build toolchain (MSVC) required installation of Visual Studio Build T
 
 ## TASK-009 — Implement Native Messaging protocol
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-007 (DONE), TASK-008 (DONE)
 
@@ -209,21 +209,21 @@ Create a versioned, explicit extension-to-companion IPC protocol.
 
 Acceptance criteria:
 
-- [ ] Protocol version exists.
-- [ ] Request IDs exist.
-- [ ] Explicit operation names exist.
-- [ ] Schema validation exists.
-- [ ] Malformed requests are rejected.
-- [ ] Arbitrary command execution is impossible.
-- [ ] Integration test exists.
+- [x] Protocol version exists.
+- [x] Request IDs exist.
+- [x] Explicit operation names exist.
+- [x] Schema validation exists.
+- [x] Malformed requests are rejected.
+- [x] Arbitrary command execution is impossible.
+- [x] Integration test exists.
 
 ---
 
 ## TASK-010 — Finalize vault cryptographic design
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-005, TASK-008
+Dependencies: TASK-005 (DONE), TASK-008 (DONE)
 
 Goal:
 

@@ -14,11 +14,11 @@ Phase 0 — Foundation
 
 ## Current task
 
-TASK-009 (READY)
+TASK-010 (READY)
 
 ## Recommended next action
 
-TASK-009 — Implement Native Messaging protocol.
+TASK-010 — Finalize vault cryptographic design. This requires human review if ambiguity is encountered.
 
 ## Completed
 
@@ -36,6 +36,7 @@ TASK-009 — Implement Native Messaging protocol.
 - Permission policy created (TASK-006).
 - Chrome extension scaffolded (TASK-007).
 - Rust companion scaffolded and verified (TASK-008).
+- Native Messaging protocol implemented (TASK-009).
 
 ## Not yet implemented
 
