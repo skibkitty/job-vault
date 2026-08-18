@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Job Vault",
+  "version": "0.1.0",
+  "description": "Private, local-first personal job-search vault.",
+  "permissions": [
+    "nativeMessaging",
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/ui/popup.html",
+    "default_title": "Job Vault"
+  },
+  "content_scripts": [
+    {
+      "matches": [],
+      "js": []
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

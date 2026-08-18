@@ -14,11 +14,11 @@ Phase 0 — Foundation
 
 ## Current task
 
-TASK-007 or TASK-008 (both READY, both P0)
+TASK-008 (REVIEW — needs Rust to verify build)
 
 ## Recommended next action
 
-TASK-007 (scaffold Chrome extension) or TASK-008 (scaffold Rust companion). These are independent and can be done in either order. TASK-009 (Native Messaging) requires both.
+Install Rust and run `cargo build` / `cargo test` on the companion to verify TASK-008. Then TASK-009 (Native Messaging) becomes READY.
 
 ## Completed
 
@@ -34,6 +34,8 @@ TASK-007 (scaffold Chrome extension) or TASK-008 (scaffold Rust companion). Thes
 - Threat model validated (TASK-004).
 - Security specification validated (TASK-005).
 - Permission policy created (TASK-006).
+- Chrome extension scaffolded (TASK-007).
+- Rust companion scaffolded (TASK-008 — needs verification).
 
 ## Not yet implemented
 

@@ -9,57 +9,82 @@ Date:
 2026-08-18
 
 Task:
-TASK-004, TASK-005, TASK-006
+TASK-007, TASK-008
 
 ## What has been done
 
-- TASK-004: Validated THREAT-MODEL.md against acceptance criteria. All met.
-- TASK-005: Validated SECURITY.md against acceptance criteria. All met.
-- TASK-006: Created docs/PERMISSIONS.md with Chrome permission policy, site access strategy, and audit checklist.
-- Updated TASKS.md: TASK-004, TASK-005, TASK-006 marked DONE. TASK-007, TASK-008 marked READY.
+- TASK-007: Scaffolded Chrome Manifest V3 extension with TypeScript, test infrastructure, adapter pattern, Native Messaging client, popup UI. Typecheck passes, 1 test passes.
+- TASK-008: Scaffolded Rust companion with vault, database, and IPC modules. Cannot verify build (Rust not installed in environment).
 
 ## What works
 
-All Phase 0 documentation tasks through TASK-006 are complete.
+- Extension typecheck passes (`npx tsc --noEmit`)
+- Extension tests pass (`npx vitest run`)
+- Companion module boundaries are correct (vault, database, ipc)
+- Companion has no network server
 
 ## What does not work
 
-No implementation code exists yet.
+- Companion build not verified (Rust not installed)
+- Extension icons are placeholders (no actual PNG files)
 
 ## Tests run
 
-None (documentation-only changes).
+- Extension: `npx vitest run` — 1 test passed
+- Extension: `npx tsc --noEmit` — passed
+- Companion: cannot run (no Rust)
 
 ## Files changed
 
-- docs/PERMISSIONS.md (new)
+- extension/manifest.json
+- extension/package.json
+- extension/tsconfig.json
+- extension/vitest.config.ts
+- extension/src/types.ts
+- extension/src/background.ts
+- extension/src/content.ts
+- extension/src/adapters/adapter.ts
+- extension/src/ui/popup.html
+- extension/src/ui/popup.ts
+- extension/test/adapter.test.ts
+- companion/Cargo.toml
+- companion/src/main.rs
+- companion/src/vault/mod.rs
+- companion/src/database/mod.rs
+- companion/src/ipc/mod.rs
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-THREAT-MODEL.md and SECURITY.md were already complete from the initial spec package. Only TASK-006 (permission policy) required new content.
+- Node.js v24.19.0 and npm 11.17.0 are available
+- Rust is NOT installed in this environment
+- TypeScript typecheck and tests pass for the extension
 
 ## Decisions
 
-See ADRs under docs/decisions/.
+- Used vitest for extension testing (lightweight, fast)
+- Used generic adapter pattern for future site-specific adapters
+- IPC module uses serde for JSON serialization
 
 ## Known risks
 
-None for this session.
+- TASK-008 is REVIEW, not DONE — needs Rust to verify build
+- Extension icons are missing (placeholder directory only)
 
 ## Next recommended action
 
-TASK-007 (scaffold Chrome extension) or TASK-008 (scaffold Rust companion). Both are READY. TASK-009 requires both.
+1. Install Rust and verify companion build (complete TASK-008)
+2. Then TASK-009 (Native Messaging) becomes READY
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Read docs/PERMISSIONS.md, docs/ARCHITECTURE.md, docs/SECURITY.md.
-3. Choose TASK-007 or TASK-008. These are independent.
-4. These tasks require actual code scaffolding, not just documentation validation.
+2. If Rust is available: run `cargo build` and `cargo test` in companion/ to verify TASK-008.
+3. If TASK-008 passes, mark it DONE. TASK-009 will become READY.
+4. If Rust is not available, document the blocker and move to another task.
 
 ## Blockers
 
-None.
+- Rust not installed — cannot verify companion builds and tests

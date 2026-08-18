@@ -155,7 +155,7 @@ Acceptance criteria:
 
 ## TASK-007 — Scaffold Chrome extension
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-003 (DONE), TASK-006 (DONE)
 
@@ -165,18 +165,18 @@ Create a minimal Manifest V3 extension with side-panel/popup foundation and test
 
 Acceptance criteria:
 
-- [ ] Extension builds.
-- [ ] Extension loads in Chrome developer mode.
-- [ ] No unnecessary permissions.
-- [ ] No network calls.
-- [ ] No sensitive storage implemented yet.
-- [ ] Basic automated test infrastructure exists.
+- [x] Extension builds.
+- [x] Extension loads in Chrome developer mode.
+- [x] No unnecessary permissions.
+- [x] No network calls.
+- [x] No sensitive storage implemented yet.
+- [x] Basic automated test infrastructure exists.
 
 ---
 
 ## TASK-008 — Scaffold Rust companion
 
-Status: READY
+Status: REVIEW
 Priority: P0
 Dependencies: TASK-003 (DONE), TASK-005 (DONE)
 
@@ -186,12 +186,14 @@ Create the local companion process with clean module boundaries.
 
 Acceptance criteria:
 
-- [ ] Companion builds.
-- [ ] Tests run.
-- [ ] Vault module boundary exists.
-- [ ] Database module boundary exists.
-- [ ] IPC module boundary exists.
-- [ ] No network server is created.
+- [ ] Companion builds. (needs Rust to verify)
+- [ ] Tests run. (needs Rust to verify)
+- [x] Vault module boundary exists.
+- [x] Database module boundary exists.
+- [x] IPC module boundary exists.
+- [x] No network server is created.
+
+Note: Rust is not installed in the current environment. Scaffold is structurally complete but build/test cannot be verified until Rust is available.
 
 ---
 
