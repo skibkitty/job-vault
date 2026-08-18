@@ -9,23 +9,23 @@ Date:
 2026-08-18
 
 Task:
-TASK-023
+TASK-024
 
 ## What has been done
 
-- Implemented snapshot history operations in SqliteStorage.
-- Added create_snapshot, get_snapshot, get_snapshots_for_job methods.
-- Added validation before write operations.
-- Added 6 comprehensive tests.
-- All 87 tests pass.
+- Implemented local job search functionality in SqliteStorage.
+- Added search_jobs method with case-insensitive search.
+- Added search by title, company_id, and location.
+- Added 5 comprehensive tests.
+- All 92 tests pass.
 
 ## What works
 
-- Create snapshot for a job
-- Get snapshot by id
-- Get snapshot history for a job (ordered by captured_at DESC)
-- Validation prevents empty required fields
-- Proper error handling for nonexistent snapshots
+- Search jobs by title, company_id, or location
+- Case-insensitive search
+- Search returns matching jobs ordered by created_at DESC
+- Empty query returns error
+- No results returns empty vec
 
 ## What does not work
 
@@ -33,7 +33,7 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 87 passed
+- `cargo test` — 92 passed
 
 ## Files changed
 
@@ -44,15 +44,16 @@ Nothing broken.
 
 ## Important discoveries
 
-- Snapshots are linked to jobs via job_id (foreign key)
-- get_snapshots_for_job orders by captured_at DESC (newest first)
-- Validation is performed before database writes
+- SQLite LIKE is case-insensitive by default for ASCII
+- Search uses %query% pattern for partial matching
+- Search is performed on title, company_id, and location fields
 
 ## Decisions
 
-- Snapshot operations are on SqliteStorage (low-level)
-- get_snapshots_for_job orders by captured_at DESC (newest first)
-- No delete operation for snapshots (historical data should be preserved)
+- Search is case-insensitive (user-friendly)
+- Search uses LIKE with % wildcards for partial matching
+- Search returns results ordered by created_at DESC (newest first)
+- Empty query is rejected with error
 
 ## Known risks
 
@@ -60,12 +61,12 @@ None.
 
 ## Next recommended action
 
-TASK-024 — Local job search.
+TASK-030 — Generic extraction framework.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-024 — Local job search.
+2. Implement TASK-030 — Generic extraction framework.
 
 ## Blockers
 

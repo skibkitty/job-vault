@@ -10,15 +10,15 @@ IN_PROGRESS
 
 ## Current phase
 
-Phase 1 — Vault and database
+Phase 3 — Browser integration
 
 ## Current task
 
-TASK-024 (READY)
+TASK-030 (READY)
 
 ## Recommended next action
 
-TASK-024 — Local job search.
+TASK-030 — Generic extraction framework.
 
 ## Completed
 
@@ -46,6 +46,7 @@ TASK-024 — Local job search.
 - JobSnapshot model implemented (TASK-021).
 - Job CRUD operations implemented (TASK-022).
 - Snapshot history operations implemented (TASK-023).
+- Local job search implemented (TASK-024).
 
 ## Not yet implemented
 
@@ -66,4 +67,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-023: Snapshot history operations implemented with 87 tests passing.
+TASK-024: Local job search implemented with 92 tests passing.

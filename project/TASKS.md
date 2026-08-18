@@ -415,7 +415,7 @@ Acceptance criteria:
 
 ## TASK-024 — Local job search
 
-Status: READY
+Status: DONE
 Priority: P1
 Dependencies: TASK-022 (DONE)
 
@@ -425,12 +425,12 @@ Implement local search functionality for jobs in the vault.
 
 Acceptance criteria:
 
-- [ ] Search jobs by title, company, location
-- [ ] Search is case-insensitive
-- [ ] Search returns matching jobs
-- [ ] Search works on unlocked vault
-- [ ] Tests for search functionality
-- [ ] All tests pass
+- [x] Search jobs by title, company, location
+- [x] Search is case-insensitive
+- [x] Search returns matching jobs
+- [x] Search works on unlocked vault
+- [x] Tests for search functionality
+- [x] All tests pass
 
 ---
 
@@ -438,9 +438,21 @@ Acceptance criteria:
 
 ## TASK-030 — Generic extraction framework
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-009, TASK-021
+Dependencies: TASK-009 (DONE), TASK-021 (DONE)
+
+Goal:
+
+Create a generic framework for extracting job data from web pages.
+
+Acceptance criteria:
+
+- [ ] Extractor trait/interface for job data extraction
+- [ ] Support for different extraction strategies
+- [ ] Basic text extraction from HTML
+- [ ] Tests for extraction framework
+- [ ] All tests pass
 
 ## TASK-031 — LinkedIn adapter
 
