@@ -14,11 +14,11 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-034 (READY)
+TASK-040 (READY)
 
 ## Recommended next action
 
-TASK-034 — Manual save fallback.
+TASK-040 — URL/canonical matching.
 
 ## Completed
 
@@ -51,6 +51,7 @@ TASK-034 — Manual save fallback.
 - LinkedIn adapter implemented (TASK-031).
 - Indeed adapter implemented (TASK-032).
 - Generic career-page adapter implemented (TASK-033).
+- Manual save fallback implemented (TASK-034).
 
 ## Not yet implemented
 
@@ -71,4 +72,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-033: Generic career-page adapter implemented with 133 tests passing.
+TASK-034: Manual save fallback implemented with 143 tests passing.
