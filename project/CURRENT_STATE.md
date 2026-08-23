@@ -14,11 +14,13 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-051 (BACKLOG)
+TASK-051 (BLOCKED)
 
 ## Recommended next action
 
-TASK-051 — Paragraph/sentence diff.
+Resolve Windows Smart App Control blocking local build output (human decision), then
+run `cargo test` on branch `task/TASK-051` to finish TASK-051. Alternative non-blocked
+work: extension-side tasks (e.g. TASK-060) do not depend on executing Rust test binaries.
 
 ## Completed
 
@@ -62,12 +64,18 @@ TASK-051 — Paragraph/sentence diff.
 - Companion IPC
 - Database encryption
 - Browser adapters
-- Diff engine
+- Diff engine (paragraph/sentence diff code written but tests not executed; bullet diff, moved/reordered detection, change ranking pending)
 - UI
 
 ## Known blockers
 
-None.
+Windows Smart App Control is On and blocks execution of freshly compiled unsigned
+binaries (os error 4551). `cargo test` cannot run any newly built test harness or build
+script. Code compiles (`cargo check`/`cargo build` succeed because existing cached
+artifacts are reused). Unblocking requires a human to turn off Smart App Control
+(Settings > Privacy & security > Windows Security > App & browser control) — note this
+is permanent until Windows is reinstalled — or otherwise permit local build output.
+Rust tasks cannot be verified until resolved.
 
 ## Known security concerns
 
@@ -75,4 +83,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-050: Text normalization implemented with 172 tests passing.
+TASK-051: Paragraph/sentence diff implemented; BLOCKED — Windows Smart App Control prevents executing Rust test binaries.

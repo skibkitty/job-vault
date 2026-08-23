@@ -1,5 +1,6 @@
 mod crypto;
 mod database;
+mod diff;
 mod extraction;
 mod ipc;
 mod matching;

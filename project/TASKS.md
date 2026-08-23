@@ -616,9 +616,36 @@ Acceptance criteria:
 
 ## TASK-051 — Paragraph/sentence diff
 
-Status: BACKLOG
+Status: BLOCKED
 Priority: P0
-Dependencies: TASK-050
+Dependencies: TASK-050 (DONE)
+
+Goal:
+
+Implement deterministic paragraph- and sentence-level diffing of job description text.
+
+Acceptance criteria:
+
+- [x] Split text into paragraphs on blank lines
+- [x] Split text into sentences on terminal punctuation
+- [x] Detect added paragraphs/sentences
+- [x] Detect removed paragraphs/sentences
+- [x] Detect modified paragraphs/sentences via similarity-threshold pairing
+- [x] Comparison uses TASK-050 normalization (HTML stripping, lowercasing, whitespace collapsing)
+- [x] Original un-normalized segment text preserved in results for display
+- [x] Fully deterministic: identical inputs produce identical output
+- [x] No LLM, no network access, no new external dependencies
+- [ ] Tests for splitting, diff classification, normalization tolerance, and determinism (written, not executed)
+- [ ] All tests pass
+
+Blocker:
+
+Windows Smart App Control is On on the development machine and blocks execution of
+freshly compiled unsigned binaries (`cargo test` fails with os error 4551 before any
+test runs; even proc-macro2 build scripts are blocked in a clean target dir).
+Implementation compiles cleanly. Unblocking requires turning off Smart App Control
+(permanent until Windows reinstall) or otherwise allowing local build output; this is
+a human decision. See project/HANDOFF.md.
 
 ## TASK-052 — Bullet diff
 
