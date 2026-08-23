@@ -1,3 +1,4 @@
+pub mod generic;
 pub mod indeed;
 pub mod linkedin;
 

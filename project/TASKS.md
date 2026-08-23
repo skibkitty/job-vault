@@ -492,15 +492,46 @@ Acceptance criteria:
 
 ## TASK-033 — Generic career-page adapter
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-030
+Dependencies: TASK-030 (DONE)
+
+Goal:
+
+Implement a fallback adapter for extracting job data from generic company career pages that do not have site-specific adapters.
+
+Acceptance criteria:
+
+- [x] Generic extractor implementing JobExtractor trait
+- [x] Detects career page URLs (e.g., /careers/, /jobs/, /positions/)
+- [x] Extracts job title from common HTML patterns (h1, h2, title tags)
+- [x] Extracts company name from page metadata or common selectors
+- [x] Extracts job description from main content areas
+- [x] Uses sensible defaults when selectors fail
+- [x] Falls back gracefully when extraction is poor quality
+- [x] Tests for generic extraction
+- [x] All tests pass
 
 ## TASK-034 — Manual save fallback
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-030
+Dependencies: TASK-030 (DONE)
+
+Goal:
+
+Implement a manual save fallback so users can save job data when automatic extraction fails or is not available.
+
+Acceptance criteria:
+
+- [ ] Manual extractor implementing JobExtractor trait
+- [ ] Accepts manually provided job data (title, company, location, description)
+- [ ] Always returns true for can_extract (manual mode)
+- [ ] Creates Job and JobSnapshot from provided fields
+- [ ] Validates required fields are present
+- [ ] Generates unique IDs for Job and JobSnapshot
+- [ ] Tests for manual extraction
+- [ ] All tests pass
 
 ---
 
@@ -508,15 +539,43 @@ Dependencies: TASK-030
 
 ## TASK-040 — URL/canonical matching
 
-Status: BACKLOG
+Status: READY
 Priority: P1
-Dependencies: TASK-023
+Dependencies: TASK-023 (DONE)
+
+Goal:
+
+Implement URL-based matching to detect when a new job snapshot is a repost of an existing job.
+
+Acceptance criteria:
+
+- [ ] Match jobs by canonical URL equality
+- [ ] Match jobs by external job ID equality
+- [ ] Return match confidence (1.0 for exact URL match)
+- [ ] Handle URL normalization (trailing slashes, query params)
+- [ ] Store match results for later use
+- [ ] Tests for URL matching
+- [ ] All tests pass
 
 ## TASK-041 — Job fingerprinting
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-023
+Dependencies: TASK-023 (DONE)
+
+Goal:
+
+Create deterministic fingerprints for job postings to enable similarity matching.
+
+Acceptance criteria:
+
+- [ ] Generate fingerprint from job fields (title, company, location, description)
+- [ ] Fingerprint is deterministic (same input = same output)
+- [ ] Normalize text before fingerprinting (lowercase, strip whitespace)
+- [ ] Use content hashing for fingerprint generation
+- [ ] Store fingerprints with job snapshots
+- [ ] Tests for fingerprint generation
+- [ ] All tests pass
 
 ## TASK-042 — Similarity matching
 
@@ -536,9 +595,24 @@ Dependencies: TASK-042
 
 ## TASK-050 — Text normalization
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-023
+Dependencies: TASK-023 (DONE)
+
+Goal:
+
+Create text normalization utilities for consistent comparison and diffing of job descriptions.
+
+Acceptance criteria:
+
+- [ ] Normalize whitespace (collapse multiple spaces, trim)
+- [ ] Normalize line breaks (convert to consistent format)
+- [ ] Strip HTML tags and decode entities
+- [ ] Lowercase text for case-insensitive comparison
+- [ ] Remove common filler words (optional, for better diffing)
+- [ ] Preserve meaningful punctuation
+- [ ] Tests for normalization functions
+- [ ] All tests pass
 
 ## TASK-051 — Paragraph/sentence diff
 
