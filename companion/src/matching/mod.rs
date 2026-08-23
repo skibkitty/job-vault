@@ -1,4 +1,5 @@
 use crate::model::Job;
+use sha2::{Sha256, Digest};
 
 #[derive(Debug, Clone)]
 pub struct MatchResult {
@@ -13,6 +14,63 @@ pub enum MatchType {
     ExactUrl,
     ExternalJobId,
     CanonicalUrl,
+    Fingerprint,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Fingerprint {
+    pub hash: String,
+}
+
+impl Fingerprint {
+    pub fn new(hash: String) -> Self {
+        Self { hash }
+    }
+}
+
+pub struct FingerprintGenerator;
+
+impl FingerprintGenerator {
+    pub fn new() -> Self {
+        Self
+    }
+
+    fn normalize_text(text: &str) -> String {
+        text.to_lowercase()
+            .split_whitespace()
+            .collect::<Vec<&str>>()
+            .join(" ")
+    }
+
+    pub fn generate(&self, job: &Job) -> Fingerprint {
+        let mut hasher = Sha256::new();
+
+        let normalized_title = Self::normalize_text(&job.title);
+        hasher.update(normalized_title.as_bytes());
+        hasher.update(b"\0");
+
+        if let Some(company) = &job.company_id {
+            let normalized_company = Self::normalize_text(company);
+            hasher.update(normalized_company.as_bytes());
+        }
+        hasher.update(b"\0");
+
+        if let Some(location) = &job.location {
+            let normalized_location = Self::normalize_text(location);
+            hasher.update(normalized_location.as_bytes());
+        }
+
+        let result = hasher.finalize();
+        let hash = format!("{:x}", result);
+
+        Fingerprint::new(hash)
+    }
+}
+
+impl Default for FingerprintGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 pub struct UrlMatcher;
@@ -216,5 +274,70 @@ mod tests {
 
         let matches = matcher.find_matches(&new_job, &existing_jobs);
         assert_eq!(matches.len(), 1);
+    }
+
+    #[test]
+    fn fingerprint_deterministic() {
+        let generator = FingerprintGenerator::new();
+        let job = create_test_job("1", None, None);
+        
+        let fp1 = generator.generate(&job);
+        let fp2 = generator.generate(&job);
+        
+        assert_eq!(fp1, fp2);
+    }
+
+    #[test]
+    fn fingerprint_same_content_same_hash() {
+        let generator = FingerprintGenerator::new();
+        let job1 = create_test_job("1", None, None);
+        let job2 = create_test_job("2", None, None);
+        
+        let fp1 = generator.generate(&job1);
+        let fp2 = generator.generate(&job2);
+        
+        assert_eq!(fp1, fp2);
+    }
+
+    #[test]
+    fn fingerprint_different_title_different_hash() {
+        let generator = FingerprintGenerator::new();
+        let mut job1 = create_test_job("1", None, None);
+        job1.title = "Software Engineer".to_string();
+        let mut job2 = create_test_job("2", None, None);
+        job2.title = "Backend Developer".to_string();
+        
+        let fp1 = generator.generate(&job1);
+        let fp2 = generator.generate(&job2);
+        
+        assert_ne!(fp1, fp2);
+    }
+
+    #[test]
+    fn fingerprint_case_insensitive() {
+        let generator = FingerprintGenerator::new();
+        let mut job1 = create_test_job("1", None, None);
+        job1.title = "Software Engineer".to_string();
+        let mut job2 = create_test_job("2", None, None);
+        job2.title = "software engineer".to_string();
+        
+        let fp1 = generator.generate(&job1);
+        let fp2 = generator.generate(&job2);
+        
+        assert_eq!(fp1, fp2);
+    }
+
+    #[test]
+    fn fingerprint_whitespace_insensitive() {
+        let generator = FingerprintGenerator::new();
+        let mut job1 = create_test_job("1", None, None);
+        job1.title = "Software  Engineer".to_string();
+        let mut job2 = create_test_job("2", None, None);
+        job2.title = "Software Engineer".to_string();
+        
+        let fp1 = generator.generate(&job1);
+        let fp2 = generator.generate(&job2);
+        
+        assert_eq!(fp1, fp2);
     }
 }

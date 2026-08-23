@@ -559,7 +559,7 @@ Acceptance criteria:
 
 ## TASK-041 — Job fingerprinting
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-023 (DONE)
 
@@ -569,13 +569,13 @@ Create deterministic fingerprints for job postings to enable similarity matching
 
 Acceptance criteria:
 
-- [ ] Generate fingerprint from job fields (title, company, location, description)
-- [ ] Fingerprint is deterministic (same input = same output)
-- [ ] Normalize text before fingerprinting (lowercase, strip whitespace)
-- [ ] Use content hashing for fingerprint generation
-- [ ] Store fingerprints with job snapshots
-- [ ] Tests for fingerprint generation
-- [ ] All tests pass
+- [x] Generate fingerprint from job fields (title, company, location, description)
+- [x] Fingerprint is deterministic (same input = same output)
+- [x] Normalize text before fingerprinting (lowercase, strip whitespace)
+- [x] Use content hashing for fingerprint generation
+- [x] Store fingerprints with job snapshots
+- [x] Tests for fingerprint generation
+- [x] All tests pass
 
 ## TASK-042 — Similarity matching
 

@@ -14,11 +14,11 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-041 (READY)
+TASK-050 (READY)
 
 ## Recommended next action
 
-TASK-041 — Job fingerprinting.
+TASK-050 — Text normalization.
 
 ## Completed
 
@@ -53,6 +53,7 @@ TASK-041 — Job fingerprinting.
 - Generic career-page adapter implemented (TASK-033).
 - Manual save fallback implemented (TASK-034).
 - URL/canonical matching implemented (TASK-040).
+- Job fingerprinting implemented (TASK-041).
 
 ## Not yet implemented
 
@@ -73,4 +74,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-040: URL/canonical matching implemented with 152 tests passing.
+TASK-041: Job fingerprinting implemented with 157 tests passing.

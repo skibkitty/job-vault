@@ -9,27 +9,26 @@ Date:
 2026-08-23
 
 Task:
-TASK-040
+TASK-041
 
 ## What has been done
 
-- Implemented URL/canonical matching for job repost detection.
-- Created UrlMatcher with URL normalization and external ID matching.
-- MatchResult struct with confidence scores and match types.
-- MatchType enum for ExactUrl and ExternalJobId.
-- URL normalization handles trailing slashes, query params, fragments.
-- Case-insensitive URL comparison.
-- Confidence scores: 1.0 for exact URL, 0.95 for external ID.
-- 9 comprehensive tests added.
-- All 152 tests pass.
+- Implemented job fingerprinting for similarity matching.
+- Created FingerprintGenerator with SHA-256 hashing.
+- Fingerprint struct with hash field.
+- Text normalization: lowercase, collapse whitespace.
+- Deterministic generation from title, company, location.
+- FingerprintMatchType added to MatchType enum.
+- 5 comprehensive tests added.
+- All 157 tests pass.
 
 ## What works
 
-- UrlMatcher find_matches detects matching jobs
-- URL normalization for consistent comparison
-- External job ID matching
-- Confidence-based ranking of matches
-- Empty existing jobs list handled gracefully
+- FingerprintGenerator generate produces consistent hashes
+- Same input produces same output
+- Case-insensitive comparison
+- Whitespace-insensitive comparison
+- Deterministic fingerprinting
 
 ## What does not work
 
@@ -37,42 +36,42 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 152 passed
+- `cargo test` — 157 passed
 
 ## Files changed
 
-- companion/src/matching/mod.rs (new)
-- companion/src/main.rs (added matching module)
+- companion/src/matching/mod.rs (added fingerprinting)
+- companion/Cargo.toml (added sha2 dependency)
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- URL normalization essential for accurate matching
-- External job IDs provide reliable matching when URLs differ
-- Confidence scoring enables prioritized review
+- SHA-256 provides reliable content hashing
+- Text normalization essential for consistent fingerprints
+- Fingerprinting enables similarity matching without exact URL match
 
 ## Decisions
 
-- UrlMatcher as primary matching strategy
-- Confidence scores for match quality
-- Normalization handles common URL variations
-- Matches sorted by confidence for review
+- SHA-256 for fingerprint hashing
+- Normalization: lowercase, collapse whitespace
+- Fingerprint from title, company, location fields
+- FingerprintMatchType for fingerprint-based matching
 
 ## Known risks
 
-- URL matching alone may miss reposts with different URLs
-- External job IDs not always available
+- Fingerprinting may not catch reworded job descriptions
+- Similar jobs with different titles won't match
 
 ## Next recommended action
 
-TASK-041 — Job fingerprinting.
+TASK-050 — Text normalization.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-041 — Job fingerprinting.
+2. Implement TASK-050 — Text normalization.
 
 ## Blockers
 
