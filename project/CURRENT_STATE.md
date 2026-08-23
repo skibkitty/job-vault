@@ -14,11 +14,11 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-030 (READY)
+TASK-031 (READY)
 
 ## Recommended next action
 
-TASK-030 — Generic extraction framework.
+TASK-031 — LinkedIn adapter.
 
 ## Completed
 
@@ -47,6 +47,7 @@ TASK-030 — Generic extraction framework.
 - Job CRUD operations implemented (TASK-022).
 - Snapshot history operations implemented (TASK-023).
 - Local job search implemented (TASK-024).
+- Generic extraction framework implemented (TASK-030).
 
 ## Not yet implemented
 
@@ -67,4 +68,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-024: Local job search implemented with 92 tests passing.
+TASK-030: Generic extraction framework implemented with 97 tests passing.
