@@ -539,7 +539,7 @@ Acceptance criteria:
 
 ## TASK-040 — URL/canonical matching
 
-Status: READY
+Status: DONE
 Priority: P1
 Dependencies: TASK-023 (DONE)
 
@@ -549,13 +549,13 @@ Implement URL-based matching to detect when a new job snapshot is a repost of an
 
 Acceptance criteria:
 
-- [ ] Match jobs by canonical URL equality
-- [ ] Match jobs by external job ID equality
-- [ ] Return match confidence (1.0 for exact URL match)
-- [ ] Handle URL normalization (trailing slashes, query params)
-- [ ] Store match results for later use
-- [ ] Tests for URL matching
-- [ ] All tests pass
+- [x] Match jobs by canonical URL equality
+- [x] Match jobs by external job ID equality
+- [x] Return match confidence (1.0 for exact URL match)
+- [x] Handle URL normalization (trailing slashes, query params)
+- [x] Store match results for later use
+- [x] Tests for URL matching
+- [x] All tests pass
 
 ## TASK-041 — Job fingerprinting
 

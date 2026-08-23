@@ -9,29 +9,27 @@ Date:
 2026-08-23
 
 Task:
-TASK-034
+TASK-040
 
 ## What has been done
 
-- Implemented manual save fallback extractor.
-- Created ManualExtractor implementing JobExtractor trait.
-- Accepts manually provided job data (title, description)
-- Always returns true for can_extract (manual mode)
-- Validates required fields (title and description)
-- Generates unique IDs for Job and JobSnapshot
-- Sets source to "manual" for tracking
-- HTML tag stripping for description content
-- 11 comprehensive tests added.
-- All 143 tests pass.
+- Implemented URL/canonical matching for job repost detection.
+- Created UrlMatcher with URL normalization and external ID matching.
+- MatchResult struct with confidence scores and match types.
+- MatchType enum for ExactUrl and ExternalJobId.
+- URL normalization handles trailing slashes, query params, fragments.
+- Case-insensitive URL comparison.
+- Confidence scores: 1.0 for exact URL, 0.95 for external ID.
+- 9 comprehensive tests added.
+- All 152 tests pass.
 
 ## What works
 
-- ManualExtractor can_extract always returns true
-- ManualExtractor extract creates Job and JobSnapshot from provided data
-- Validates required fields are present
-- HTML tag and entity stripping for clean text
-- ExtractionResult includes job, snapshot, source_url, extractor_name
-- Pipeline integration works
+- UrlMatcher find_matches detects matching jobs
+- URL normalization for consistent comparison
+- External job ID matching
+- Confidence-based ranking of matches
+- Empty existing jobs list handled gracefully
 
 ## What does not work
 
@@ -39,42 +37,42 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 143 passed
+- `cargo test` — 152 passed
 
 ## Files changed
 
-- companion/src/extraction/manual.rs (new)
-- companion/src/extraction/mod.rs (added manual module)
+- companion/src/matching/mod.rs (new)
+- companion/src/main.rs (added matching module)
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- Manual extractor serves as fallback for broken automatic extraction
-- Required field validation ensures data quality
-- HTML stripping handles user-provided content
+- URL normalization essential for accurate matching
+- External job IDs provide reliable matching when URLs differ
+- Confidence scoring enables prioritized review
 
 ## Decisions
 
-- Manual extractor always returns true for can_extract
-- Title and description are required fields
-- HTML stripping applied to description for clean storage
-- extractor_name field set to "manual" for tracking
+- UrlMatcher as primary matching strategy
+- Confidence scores for match quality
+- Normalization handles common URL variations
+- Matches sorted by confidence for review
 
 ## Known risks
 
-- Manual extraction relies on user providing accurate data
-- No validation of URL format
+- URL matching alone may miss reposts with different URLs
+- External job IDs not always available
 
 ## Next recommended action
 
-TASK-040 — URL/canonical matching.
+TASK-041 — Job fingerprinting.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-040 — URL/canonical matching.
+2. Implement TASK-041 — Job fingerprinting.
 
 ## Blockers
 
