@@ -31,6 +31,37 @@ export async function sendToCompanion(
   });
 }
 
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (
+    typeof message !== "object" ||
+    message === null ||
+    (message as { type?: unknown }).type !== "jobList"
+  ) {
+    return false;
+  }
+
+  const requestId =
+    typeof (message as { requestId?: unknown }).requestId === "string"
+      ? (message as { requestId: string }).requestId
+      : `bg-${Date.now()}`;
+
+  sendToCompanion("job.list", {})
+    .then(sendResponse)
+    .catch((err: unknown) => {
+      sendResponse({
+        protocolVersion: 1,
+        requestId,
+        success: false,
+        error: {
+          code: "COMPANION_UNAVAILABLE",
+          message: err instanceof Error ? err.message : String(err),
+        },
+      });
+    });
+
+  return true;
+});
+
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return;
 

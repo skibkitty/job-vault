@@ -650,9 +650,26 @@ Dependencies: TASK-054
 
 ## TASK-060 — Job list
 
-Status: BACKLOG
+Status: DONE
 Priority: P1
-Dependencies: TASK-022, TASK-007
+Dependencies: TASK-022 (DONE), TASK-007 (DONE)
+
+Goal:
+
+Display the user's saved jobs in the extension popup.
+
+Acceptance criteria:
+
+- [x] Popup fetches saved jobs via `job.list` IPC routed through the service worker
+- [x] Strict validation of IPC payload shape before rendering
+- [x] States handled: loading, empty, ready, vault locked, companion unavailable, not implemented, error
+- [x] Renders only safe content (no innerHTML with untrusted data; http/https URLs only)
+- [x] Client-side filter box narrows the visible list
+- [x] Deterministic ordering (newest first, title tiebreak)
+- [x] No new permissions, no network access
+- [x] Pure data/render-preparation logic separated from DOM wiring
+- [x] Tests for parsing, validation, filtering, sorting, and state resolution
+- [x] `npm run typecheck` and `npm test` pass
 
 ## TASK-061 — Job detail
 

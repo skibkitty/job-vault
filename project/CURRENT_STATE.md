@@ -10,15 +10,16 @@ IN_PROGRESS
 
 ## Current phase
 
-Phase 3 — Browser integration
+Phase 6 — UI (extension-side); Phase 5 diff engine blocked on Rust test execution
 
 ## Current task
 
-TASK-051 (BACKLOG)
+TASK-060 (DONE)
 
 ## Recommended next action
 
-TASK-051 — Paragraph/sentence diff.
+TASK-061 — Job detail. Rust tasks (TASK-042, TASK-050 follow-ups, TASK-052+) require
+resolving the Smart App Control blocker first (see Known blockers and HANDOFF).
 
 ## Completed
 
@@ -55,24 +56,31 @@ TASK-051 — Paragraph/sentence diff.
 - URL/canonical matching implemented (TASK-040).
 - Job fingerprinting implemented (TASK-041).
 - Text normalization implemented (TASK-050).
+- Popup job list with IPC fetch, safe rendering, filtering, and states implemented (TASK-060).
 
 ## Not yet implemented
 
-- Extension
-- Companion IPC
+- Companion IPC (companion-side handlers for job.list etc. return NOT_IMPLEMENTED)
 - Database encryption
 - Browser adapters
-- Diff engine
-- UI
+- Diff engine (bullet diff, moved/reordered detection, change ranking pending; paragraph/sentence diff exists on blocked branch task/TASK-051)
+- Remaining UI (job detail, snapshot history, comparison view, change highlighting, keyword view)
 
 ## Known blockers
 
-None.
+Windows Smart App Control is On on the development machine and blocks execution of
+freshly compiled unsigned binaries (os error 4551). Rust `cargo test` cannot run newly
+built test harnesses or build scripts; extension tooling (node/vitest) is unaffected.
+Unblocking requires a human to turn off Smart App Control (Settings > Privacy &
+security > Windows Security > App & browser control) — permanent until Windows
+reinstall — or otherwise permit local build output.
 
 ## Known security concerns
 
-No implementation exists yet. Security design must be completed before sensitive storage is implemented.
+Vault crypto design is finalized (ADR-005) and vault code compiles, but runtime
+verification is currently impossible while the Smart App Control blocker stands.
+No telemetry/network surface has been added.
 
 ## Last updated
 
-TASK-050: Text normalization implemented with 172 tests passing.
+TASK-060: Popup job list implemented; 46 extension tests passing.
