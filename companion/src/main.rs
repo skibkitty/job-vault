@@ -4,6 +4,7 @@ mod extraction;
 mod ipc;
 mod matching;
 mod model;
+mod normalization;
 mod vault;
 
 fn main() {

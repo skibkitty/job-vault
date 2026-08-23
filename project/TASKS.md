@@ -595,7 +595,7 @@ Dependencies: TASK-042
 
 ## TASK-050 — Text normalization
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-023 (DONE)
 
@@ -605,14 +605,14 @@ Create text normalization utilities for consistent comparison and diffing of job
 
 Acceptance criteria:
 
-- [ ] Normalize whitespace (collapse multiple spaces, trim)
-- [ ] Normalize line breaks (convert to consistent format)
-- [ ] Strip HTML tags and decode entities
-- [ ] Lowercase text for case-insensitive comparison
-- [ ] Remove common filler words (optional, for better diffing)
-- [ ] Preserve meaningful punctuation
-- [ ] Tests for normalization functions
-- [ ] All tests pass
+- [x] Normalize whitespace (collapse multiple spaces, trim)
+- [x] Normalize line breaks (convert to consistent format)
+- [x] Strip HTML tags and decode entities
+- [x] Lowercase text for case-insensitive comparison
+- [x] Remove common filler words (optional, for better diffing)
+- [x] Preserve meaningful punctuation
+- [x] Tests for normalization functions
+- [x] All tests pass
 
 ## TASK-051 — Paragraph/sentence diff
 
