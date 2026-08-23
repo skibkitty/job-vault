@@ -14,11 +14,11 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-050 (READY)
+TASK-051 (BACKLOG)
 
 ## Recommended next action
 
-TASK-050 — Text normalization.
+TASK-051 — Paragraph/sentence diff.
 
 ## Completed
 
@@ -54,6 +54,7 @@ TASK-050 — Text normalization.
 - Manual save fallback implemented (TASK-034).
 - URL/canonical matching implemented (TASK-040).
 - Job fingerprinting implemented (TASK-041).
+- Text normalization implemented (TASK-050).
 
 ## Not yet implemented
 
@@ -74,4 +75,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-041: Job fingerprinting implemented with 157 tests passing.
+TASK-050: Text normalization implemented with 172 tests passing.
