@@ -438,7 +438,7 @@ Acceptance criteria:
 
 ## TASK-030 — Generic extraction framework
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-009 (DONE), TASK-021 (DONE)
 
@@ -448,17 +448,29 @@ Create a generic framework for extracting job data from web pages.
 
 Acceptance criteria:
 
-- [ ] Extractor trait/interface for job data extraction
-- [ ] Support for different extraction strategies
-- [ ] Basic text extraction from HTML
-- [ ] Tests for extraction framework
-- [ ] All tests pass
+- [x] Extractor trait/interface for job data extraction
+- [x] Support for different extraction strategies
+- [x] Basic text extraction from HTML
+- [x] Tests for extraction framework
+- [x] All tests pass
 
 ## TASK-031 — LinkedIn adapter
 
-Status: BACKLOG
+Status: READY
 Priority: P0
-Dependencies: TASK-030
+Dependencies: TASK-030 (DONE)
+
+Goal:
+
+Implement job extraction adapter for LinkedIn job pages.
+
+Acceptance criteria:
+
+- [ ] LinkedIn extractor implementing JobExtractor trait
+- [ ] Can detect LinkedIn job URLs
+- [ ] Extracts job title, company, location, description
+- [ ] Tests for LinkedIn extraction
+- [ ] All tests pass
 
 ## TASK-032 — Indeed adapter
 

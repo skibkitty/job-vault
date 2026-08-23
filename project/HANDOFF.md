@@ -9,23 +9,24 @@ Date:
 2026-08-18
 
 Task:
-TASK-024
+TASK-030
 
 ## What has been done
 
-- Implemented local job search functionality in SqliteStorage.
-- Added search_jobs method with case-insensitive search.
-- Added search by title, company_id, and location.
+- Implemented generic extraction framework for job data extraction.
+- Created JobExtractor trait with can_extract and extract methods.
+- Created ExtractionPipeline for managing multiple extractors.
+- Added ExtractionResult and ExtractionContext structs.
 - Added 5 comprehensive tests.
-- All 92 tests pass.
+- All 97 tests pass.
 
 ## What works
 
-- Search jobs by title, company_id, or location
-- Case-insensitive search
-- Search returns matching jobs ordered by created_at DESC
-- Empty query returns error
-- No results returns empty vec
+- JobExtractor trait for defining extraction strategies
+- ExtractionPipeline for managing and running extractors
+- Pipeline finds first matching extractor and runs it
+- Proper error handling when no extractor matches
+- Mock extractor for testing
 
 ## What does not work
 
@@ -33,27 +34,29 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 92 passed
+- `cargo test` — 97 passed
 
 ## Files changed
 
-- companion/src/database/sqlite.rs
+- companion/src/extraction/mod.rs (new)
+- companion/src/main.rs
+- companion/Cargo.toml
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- SQLite LIKE is case-insensitive by default for ASCII
-- Search uses %query% pattern for partial matching
-- Search is performed on title, company_id, and location fields
+- ExtractionPipeline uses first-match strategy
+- Extractors are trait objects (Box<dyn JobExtractor>)
+- ExtractionContext provides URL, HTML, and optional title
 
 ## Decisions
 
-- Search is case-insensitive (user-friendly)
-- Search uses LIKE with % wildcards for partial matching
-- Search returns results ordered by created_at DESC (newest first)
-- Empty query is rejected with error
+- Pipeline uses first-match strategy (simple and predictable)
+- Extractors are Send + Sync for thread safety
+- ExtractionResult includes job, snapshot, source_url, and extractor_name
+- Added chrono dependency for timestamp generation in tests
 
 ## Known risks
 
@@ -61,12 +64,12 @@ None.
 
 ## Next recommended action
 
-TASK-030 — Generic extraction framework.
+TASK-031 — LinkedIn adapter.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-030 — Generic extraction framework.
+2. Implement TASK-031 — LinkedIn adapter.
 
 ## Blockers
 
