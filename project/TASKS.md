@@ -456,7 +456,7 @@ Acceptance criteria:
 
 ## TASK-031 — LinkedIn adapter
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-030 (DONE)
 
@@ -466,11 +466,11 @@ Implement job extraction adapter for LinkedIn job pages.
 
 Acceptance criteria:
 
-- [ ] LinkedIn extractor implementing JobExtractor trait
-- [ ] Can detect LinkedIn job URLs
-- [ ] Extracts job title, company, location, description
-- [ ] Tests for LinkedIn extraction
-- [ ] All tests pass
+- [x] LinkedIn extractor implementing JobExtractor trait
+- [x] Can detect LinkedIn job URLs
+- [x] Extracts job title, company, location, description
+- [x] Tests for LinkedIn extraction
+- [x] All tests pass
 
 ## TASK-032 — Indeed adapter
 

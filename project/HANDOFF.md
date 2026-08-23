@@ -6,27 +6,31 @@ Agent:
 opencode/big-pickle
 
 Date:
-2026-08-18
+2026-08-23
 
 Task:
-TASK-030
+TASK-031
 
 ## What has been done
 
-- Implemented generic extraction framework for job data extraction.
-- Created JobExtractor trait with can_extract and extract methods.
-- Created ExtractionPipeline for managing multiple extractors.
-- Added ExtractionResult and ExtractionContext structs.
-- Added 5 comprehensive tests.
-- All 97 tests pass.
+- Implemented LinkedIn job extraction adapter.
+- Created LinkedInExtractor implementing JobExtractor trait.
+- Extracts title, company, location, description from LinkedIn job pages.
+- Parses raw HTML using CSS-class-based selectors.
+- Generates unique IDs for Job and JobSnapshot.
+- Sets source to "linkedin" and extractor_name to "linkedin".
+- HTML tag stripping for description content.
+- 10 comprehensive tests added.
+- All 107 tests pass.
 
 ## What works
 
-- JobExtractor trait for defining extraction strategies
-- ExtractionPipeline for managing and running extractors
-- Pipeline finds first matching extractor and runs it
-- Proper error handling when no extractor matches
-- Mock extractor for testing
+- LinkedInExtractor can_extract detects LinkedIn job URLs
+- LinkedInExtractor extract parses job data from HTML
+- Fallback to page title or "Untitled Position" when title not found
+- HTML tag and entity stripping for clean text
+- ExtractionResult includes job, snapshot, source_url, extractor_name
+- Pipeline integration works
 
 ## What does not work
 
@@ -34,55 +38,44 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 97 passed
+- `cargo test` — 107 passed
 
 ## Files changed
 
-- companion/src/extraction/mod.rs (new)
-- companion/src/main.rs
-- companion/Cargo.toml
+- companion/src/extraction/linkedin.rs (new)
+- companion/src/extraction/mod.rs (added linkedin module)
+- companion/Cargo.toml (added uuid dependency)
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- ExtractionPipeline uses first-match strategy
-- Extractors are trait objects (Box<dyn JobExtractor>)
-- ExtractionContext provides URL, HTML, and optional title
+- LinkedIn HTML uses class names like top-card-layout__title, t-24 t-bold
+- Simple string-based HTML parsing works for extraction
+- HTML entity decoding needed for clean output
+- UUID crate needed for generating unique Job/Snapshot IDs
 
 ## Decisions
 
-- Pipeline uses first-match strategy (simple and predictable)
-- Extractors are Send + Sync for thread safety
-- ExtractionResult includes job, snapshot, source_url, and extractor_name
-- Added chrono dependency for timestamp generation in tests
+- String-based HTML parsing (no external HTML parser crate)
+- LinkedIn extractor registered in extraction module
+- uuid crate added for unique ID generation
+- extractor_name field set to "linkedin" for tracking
 
 ## Known risks
 
-None.
+- LinkedIn class names may change over time, breaking extraction
+- String-based parsing is fragile vs DOM parsing
 
 ## Next recommended action
 
-TASK-031 — LinkedIn adapter.
+TASK-032 — Indeed adapter.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-031 — LinkedIn adapter.
-
-## Blockers
-
-None.
-
-## Next recommended action
-
-TASK-022 — Job CRUD.
-
-## Instructions for next agent
-
-1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-022 — Job CRUD.
+2. Implement TASK-032 — Indeed adapter.
 
 ## Blockers
 

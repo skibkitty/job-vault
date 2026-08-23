@@ -1,3 +1,5 @@
+pub mod linkedin;
+
 use crate::model::{Job, JobSnapshot};
 
 #[derive(Debug, Clone)]

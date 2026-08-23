@@ -14,11 +14,11 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-031 (READY)
+TASK-032 (BACKLOG)
 
 ## Recommended next action
 
-TASK-031 — LinkedIn adapter.
+TASK-032 — Indeed adapter.
 
 ## Completed
 
@@ -48,6 +48,7 @@ TASK-031 — LinkedIn adapter.
 - Snapshot history operations implemented (TASK-023).
 - Local job search implemented (TASK-024).
 - Generic extraction framework implemented (TASK-030).
+- LinkedIn adapter implemented (TASK-031).
 
 ## Not yet implemented
 
@@ -68,4 +69,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-030: Generic extraction framework implemented with 97 tests passing.
+TASK-031: LinkedIn adapter implemented with 107 tests passing.
