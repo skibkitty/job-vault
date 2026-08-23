@@ -2,6 +2,7 @@ mod crypto;
 mod database;
 mod extraction;
 mod ipc;
+mod matching;
 mod model;
 mod vault;
 

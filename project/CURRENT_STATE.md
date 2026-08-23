@@ -14,11 +14,11 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-040 (READY)
+TASK-041 (READY)
 
 ## Recommended next action
 
-TASK-040 — URL/canonical matching.
+TASK-041 — Job fingerprinting.
 
 ## Completed
 
@@ -52,6 +52,7 @@ TASK-040 — URL/canonical matching.
 - Indeed adapter implemented (TASK-032).
 - Generic career-page adapter implemented (TASK-033).
 - Manual save fallback implemented (TASK-034).
+- URL/canonical matching implemented (TASK-040).
 
 ## Not yet implemented
 
@@ -72,4 +73,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-034: Manual save fallback implemented with 143 tests passing.
+TASK-040: URL/canonical matching implemented with 152 tests passing.
