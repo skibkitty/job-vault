@@ -14,11 +14,11 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-032 (BACKLOG)
+TASK-033 (BACKLOG)
 
 ## Recommended next action
 
-TASK-032 — Indeed adapter.
+TASK-033 — Generic career-page adapter.
 
 ## Completed
 
@@ -49,6 +49,7 @@ TASK-032 — Indeed adapter.
 - Local job search implemented (TASK-024).
 - Generic extraction framework implemented (TASK-030).
 - LinkedIn adapter implemented (TASK-031).
+- Indeed adapter implemented (TASK-032).
 
 ## Not yet implemented
 
@@ -69,4 +70,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-031: LinkedIn adapter implemented with 107 tests passing.
+TASK-032: Indeed adapter implemented with 118 tests passing.

@@ -474,9 +474,21 @@ Acceptance criteria:
 
 ## TASK-032 — Indeed adapter
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-030
+Dependencies: TASK-030 (DONE)
+
+Goal:
+
+Implement job extraction adapter for Indeed job pages.
+
+Acceptance criteria:
+
+- [x] Indeed extractor implementing JobExtractor trait
+- [x] Can detect Indeed job URLs
+- [x] Extracts job title, company, location, description
+- [x] Tests for Indeed extraction
+- [x] All tests pass
 
 ## TASK-033 — Generic career-page adapter
 

@@ -1,3 +1,4 @@
+pub mod indeed;
 pub mod linkedin;
 
 use crate::model::{Job, JobSnapshot};
