@@ -9,24 +9,27 @@ Date:
 2026-08-23
 
 Task:
-TASK-032
+TASK-033
 
 ## What has been done
 
-- Implemented Indeed job extraction adapter.
-- Created IndeedExtractor implementing JobExtractor trait.
-- Extracts title, company, location, description from Indeed job pages.
-- Parses raw HTML using CSS-class-based selectors.
-- Generates unique IDs for Job and JobSnapshot.
-- Sets source to "indeed" and extractor_name to "indeed".
-- HTML tag stripping for description content.
-- 11 comprehensive tests added.
-- All 118 tests pass.
+- Implemented generic career-page extraction adapter.
+- Created GenericCareerExtractor implementing JobExtractor trait.
+- Detects career page URLs (/careers/, /jobs/, /positions/, etc.)
+- Extracts title, company, location, description from HTML
+- Uses meta tags as fallback (og:title, og:site_name)
+- Generates unique IDs for Job and JobSnapshot
+- Sets source to "generic" for tracking
+- HTML tag stripping for description content
+- 15 comprehensive tests added.
+- All 133 tests pass.
 
 ## What works
 
-- IndeedExtractor can_extract detects Indeed job URLs
-- IndeedExtractor extract parses job data from HTML
+- GenericCareerExtractor can_extract detects career page URLs
+- GenericCareerExtractor extract parses job data from HTML
+- Multiple selector strategies for each field
+- Meta tag fallback for title and company
 - Fallback to page title or "Untitled Position" when title not found
 - HTML tag and entity stripping for clean text
 - ExtractionResult includes job, snapshot, source_url, extractor_name
@@ -38,42 +41,43 @@ Nothing broken.
 
 ## Tests run
 
-- `cargo test` — 118 passed
+- `cargo test` — 133 passed
 
 ## Files changed
 
-- companion/src/extraction/indeed.rs (new)
-- companion/src/extraction/mod.rs (added indeed module)
+- companion/src/extraction/generic.rs (new)
+- companion/src/extraction/mod.rs (added generic module)
 - project/TASKS.md
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
 ## Important discoveries
 
-- Indeed HTML uses class names like jobsearch-JobInfoHeader-title, jobsearch-JobInfoHeader-location
-- Simple string-based HTML parsing works for extraction
-- HTML entity decoding needed for clean output
-- UUID crate already added in TASK-031
+- Career pages use varied class names across companies
+- Meta tags provide reliable fallback for title/company
+- URL pattern matching (/careers/, /jobs/) works well for detection
+- Generic extraction is less precise than site-specific but functional
 
 ## Decisions
 
 - String-based HTML parsing (no external HTML parser crate)
-- Indeed extractor registered in extraction module
-- extractor_name field set to "indeed" for tracking
+- Multiple selector strategies for robustness
+- Meta tag fallback for better coverage
+- extractor_name field set to "generic" for tracking
 
 ## Known risks
 
-- Indeed class names may change over time, breaking extraction
-- String-based parsing is fragile vs DOM parsing
+- Generic extraction may miss fields on some career pages
+- Class names vary widely across companies
 
 ## Next recommended action
 
-TASK-033 — Generic career-page adapter.
+TASK-034 — Manual save fallback.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Implement TASK-033 — Generic career-page adapter.
+2. Implement TASK-034 — Manual save fallback.
 
 ## Blockers
 

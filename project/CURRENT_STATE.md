@@ -14,11 +14,11 @@ Phase 3 — Browser integration
 
 ## Current task
 
-TASK-033 (BACKLOG)
+TASK-034 (READY)
 
 ## Recommended next action
 
-TASK-033 — Generic career-page adapter.
+TASK-034 — Manual save fallback.
 
 ## Completed
 
@@ -50,6 +50,7 @@ TASK-033 — Generic career-page adapter.
 - Generic extraction framework implemented (TASK-030).
 - LinkedIn adapter implemented (TASK-031).
 - Indeed adapter implemented (TASK-032).
+- Generic career-page adapter implemented (TASK-033).
 
 ## Not yet implemented
 
@@ -70,4 +71,4 @@ No implementation exists yet. Security design must be completed before sensitive
 
 ## Last updated
 
-TASK-032: Indeed adapter implemented with 118 tests passing.
+TASK-033: Generic career-page adapter implemented with 133 tests passing.
