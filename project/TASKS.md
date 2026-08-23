@@ -514,7 +514,7 @@ Acceptance criteria:
 
 ## TASK-034 — Manual save fallback
 
-Status: READY
+Status: DONE
 Priority: P0
 Dependencies: TASK-030 (DONE)
 
@@ -524,14 +524,14 @@ Implement a manual save fallback so users can save job data when automatic extra
 
 Acceptance criteria:
 
-- [ ] Manual extractor implementing JobExtractor trait
-- [ ] Accepts manually provided job data (title, company, location, description)
-- [ ] Always returns true for can_extract (manual mode)
-- [ ] Creates Job and JobSnapshot from provided fields
-- [ ] Validates required fields are present
-- [ ] Generates unique IDs for Job and JobSnapshot
-- [ ] Tests for manual extraction
-- [ ] All tests pass
+- [x] Manual extractor implementing JobExtractor trait
+- [x] Accepts manually provided job data (title, company, location, description)
+- [x] Always returns true for can_extract (manual mode)
+- [x] Creates Job and JobSnapshot from provided fields
+- [x] Validates required fields are present
+- [x] Generates unique IDs for Job and JobSnapshot
+- [x] Tests for manual extraction
+- [x] All tests pass
 
 ---
 

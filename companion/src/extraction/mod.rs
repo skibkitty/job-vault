@@ -1,6 +1,7 @@
 pub mod generic;
 pub mod indeed;
 pub mod linkedin;
+pub mod manual;
 
 use crate::model::{Job, JobSnapshot};
 
