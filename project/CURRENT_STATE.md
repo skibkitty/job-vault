@@ -14,11 +14,12 @@ Phase 6 — UI (extension-side); Phase 5 diff engine blocked on Rust test execut
 
 ## Current task
 
-TASK-061 (DONE)
+TASK-062 (DONE)
 
 ## Recommended next action
 
-TASK-062 — Snapshot history UI (depends on TASK-061 DONE and TASK-023 DONE).
+TASK-063 — Comparison view (depends on TASK-055, BLOCKED on Rust diff engine).
+Next available extension-side task after TASK-063 would need new task definition.
 Rust tasks (TASK-042, TASK-051, TASK-052+) remain blocked on Smart App Control.
 
 ## Completed
@@ -58,6 +59,7 @@ Rust tasks (TASK-042, TASK-051, TASK-052+) remain blocked on Smart App Control.
 - Text normalization implemented (TASK-050).
 - Popup job list with IPC fetch, safe rendering, filtering, and states implemented (TASK-060).
 - Popup job detail view with IPC fetch, safe rendering, and back navigation implemented (TASK-061).
+- Snapshot history UI with clickable snapshots, snapshot detail view, and back-to-job navigation implemented (TASK-062).
 
 ## Not yet implemented
 
@@ -65,7 +67,7 @@ Rust tasks (TASK-042, TASK-051, TASK-052+) remain blocked on Smart App Control.
 - Database encryption
 - Browser adapters
 - Diff engine (bullet diff, moved/reordered detection, change ranking pending; paragraph/sentence diff exists on blocked branch task/TASK-051)
-- Remaining UI (snapshot history, comparison view, change highlighting, keyword view)
+- Remaining UI (comparison view, change highlighting, keyword view)
 
 ## Known blockers
 
@@ -84,4 +86,4 @@ No telemetry/network surface has been added.
 
 ## Last updated
 
-TASK-061: Popup job detail view implemented; 73 extension tests passing.
+TASK-062: Snapshot history UI implemented; 86 extension tests passing.

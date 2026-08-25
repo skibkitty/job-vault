@@ -1,11 +1,28 @@
 import { describe, it, expect } from "vitest";
 import {
   parseJobDetail,
+  parseSnapshotDetail,
+  sortSnapshots,
   resolveDetailState,
   stateFromError,
-  JobDetail,
+  SnapshotDetail,
 } from "../src/ui/jobdetail";
 import { IpcResponse } from "../src/types";
+
+function snapshot(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: "snap-1",
+    title: "Software Engineer",
+    company: "Example Corp",
+    location: "Berlin",
+    url: "https://example.com/jobs/1",
+    capturedAt: "2026-08-20T10:00:00Z",
+    description: "Build things.",
+    requirements: ["TypeScript"],
+    responsibilities: ["Write code"],
+    ...overrides,
+  };
+}
 
 function detail(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
   return {
@@ -20,8 +37,8 @@ function detail(overrides: Partial<Record<string, unknown>> = {}): Record<string
     requirements: ["TypeScript", "Rust"],
     responsibilities: ["Write code", "Review PRs"],
     snapshots: [
-      { id: "snap-1", capturedAt: "2026-08-20T10:00:00Z" },
-      { id: "snap-2", capturedAt: "2026-08-19T09:00:00Z" },
+      snapshot({ id: "snap-1", capturedAt: "2026-08-20T10:00:00Z" }),
+      snapshot({ id: "snap-2", capturedAt: "2026-08-19T09:00:00Z" }),
     ],
     createdAt: "2026-08-01T00:00:00Z",
     updatedAt: "2026-08-20T10:00:00Z",
@@ -47,8 +64,99 @@ function errorResponse(code: string, message: string): IpcResponse {
   };
 }
 
+describe("parseSnapshotDetail", () => {
+  it("parses a valid snapshot", () => {
+    const parsed = parseSnapshotDetail(snapshot());
+    expect(parsed).not.toBeNull();
+    expect(parsed?.id).toBe("snap-1");
+    expect(parsed?.title).toBe("Software Engineer");
+    expect(parsed?.capturedAt).toBe("2026-08-20T10:00:00Z");
+    expect(parsed?.company).toBe("Example Corp");
+    expect(parsed?.location).toBe("Berlin");
+    expect(parsed?.url).toBe("https://example.com/jobs/1");
+    expect(parsed?.description).toBe("Build things.");
+    expect(parsed?.requirements).toEqual(["TypeScript"]);
+    expect(parsed?.responsibilities).toEqual(["Write code"]);
+  });
+
+  it("rejects missing id", () => {
+    expect(parseSnapshotDetail(snapshot({ id: "" }))).toBeNull();
+  });
+
+  it("rejects missing title", () => {
+    expect(parseSnapshotDetail(snapshot({ title: null }))).toBeNull();
+  });
+
+  it("rejects non-object payloads", () => {
+    expect(parseSnapshotDetail("string")).toBeNull();
+    expect(parseSnapshotDetail(42)).toBeNull();
+    expect(parseSnapshotDetail(null)).toBeNull();
+  });
+
+  it("defaults optional fields to null when blank", () => {
+    const parsed = parseSnapshotDetail(
+      snapshot({ company: "", location: "  ", salary: undefined })
+    );
+    expect(parsed?.company).toBeNull();
+    expect(parsed?.location).toBeNull();
+    expect(parsed?.salary).toBeNull();
+  });
+
+  it("defaults missing capturedAt to empty string", () => {
+    const parsed = parseSnapshotDetail(snapshot({ capturedAt: undefined }));
+    expect(parsed?.capturedAt).toBe("");
+  });
+
+  it("drops javascript urls", () => {
+    expect(parseSnapshotDetail(snapshot({ url: "javascript:alert(1)" }))?.url).toBeNull();
+  });
+
+  it("keeps http and https urls", () => {
+    expect(parseSnapshotDetail(snapshot({ url: "http://example.com/x" }))?.url).toBe(
+      "http://example.com/x"
+    );
+    expect(parseSnapshotDetail(snapshot())?.url).toBe("https://example.com/jobs/1");
+  });
+
+  it("filters non-string array entries", () => {
+    const parsed = parseSnapshotDetail(
+      snapshot({ requirements: ["TypeScript", 123, null] })
+    );
+    expect(parsed?.requirements).toEqual(["TypeScript"]);
+  });
+});
+
+describe("sortSnapshots", () => {
+  it("sorts newest first by capturedAt", () => {
+    const snaps: SnapshotDetail[] = [
+      { id: "old", title: "A", capturedAt: "2026-08-01T00:00:00Z", company: null, location: null, url: null, salary: null, employmentType: null, description: "", requirements: [], responsibilities: [] },
+      { id: "new", title: "A", capturedAt: "2026-08-20T00:00:00Z", company: null, location: null, url: null, salary: null, employmentType: null, description: "", requirements: [], responsibilities: [] },
+    ];
+    const sorted = sortSnapshots(snaps);
+    expect(sorted.map((s) => s.id)).toEqual(["new", "old"]);
+  });
+
+  it("breaks ties by id", () => {
+    const snaps: SnapshotDetail[] = [
+      { id: "b", title: "A", capturedAt: "2026-08-01T00:00:00Z", company: null, location: null, url: null, salary: null, employmentType: null, description: "", requirements: [], responsibilities: [] },
+      { id: "a", title: "A", capturedAt: "2026-08-01T00:00:00Z", company: null, location: null, url: null, salary: null, employmentType: null, description: "", requirements: [], responsibilities: [] },
+    ];
+    const sorted = sortSnapshots(snaps);
+    expect(sorted.map((s) => s.id)).toEqual(["a", "b"]);
+  });
+
+  it("sorts empty capturedAt last", () => {
+    const snaps: SnapshotDetail[] = [
+      { id: "empty", title: "A", capturedAt: "", company: null, location: null, url: null, salary: null, employmentType: null, description: "", requirements: [], responsibilities: [] },
+      { id: "dated", title: "A", capturedAt: "2026-08-01T00:00:00Z", company: null, location: null, url: null, salary: null, employmentType: null, description: "", requirements: [], responsibilities: [] },
+    ];
+    const sorted = sortSnapshots(snaps);
+    expect(sorted.map((s) => s.id)).toEqual(["dated", "empty"]);
+  });
+});
+
 describe("parseJobDetail", () => {
-  it("parses a valid detail payload", () => {
+  it("parses a valid detail payload with snapshots", () => {
     const parsed = parseJobDetail(detail());
     expect(parsed).not.toBeNull();
     expect(parsed?.id).toBe("job-1");
@@ -62,6 +170,9 @@ describe("parseJobDetail", () => {
     expect(parsed?.requirements).toEqual(["TypeScript", "Rust"]);
     expect(parsed?.responsibilities).toEqual(["Write code", "Review PRs"]);
     expect(parsed?.snapshots).toHaveLength(2);
+    expect(parsed?.snapshots[0].id).toBe("snap-1");
+    expect(parsed?.snapshots[0].title).toBe("Software Engineer");
+    expect(parsed?.snapshots[0].description).toBe("Build things.");
     expect(parsed?.createdAt).toBe("2026-08-01T00:00:00Z");
     expect(parsed?.updatedAt).toBe("2026-08-20T10:00:00Z");
   });
@@ -117,10 +228,38 @@ describe("parseJobDetail", () => {
 
   it("skips invalid snapshot entries", () => {
     const parsed = parseJobDetail(
-      detail({ snapshots: [{ id: "s1", capturedAt: "2026-01-01" }, "bad", { id: "" }] })
+      detail({ snapshots: [
+        snapshot({ id: "s1", capturedAt: "2026-01-01" }),
+        "bad",
+        snapshot({ id: "" }),
+      ] })
     );
     expect(parsed?.snapshots).toHaveLength(1);
     expect(parsed?.snapshots[0].id).toBe("s1");
+  });
+
+  it("parses snapshot details with full fields", () => {
+    const parsed = parseJobDetail(
+      detail({
+        snapshots: [
+          snapshot({
+            id: "s1",
+            title: "Updated Role",
+            company: "New Corp",
+            description: "New description.",
+            requirements: ["Python"],
+            responsibilities: ["Lead team"],
+          }),
+        ],
+      })
+    );
+    expect(parsed?.snapshots).toHaveLength(1);
+    const snap = parsed?.snapshots[0];
+    expect(snap?.title).toBe("Updated Role");
+    expect(snap?.company).toBe("New Corp");
+    expect(snap?.description).toBe("New description.");
+    expect(snap?.requirements).toEqual(["Python"]);
+    expect(snap?.responsibilities).toEqual(["Lead team"]);
   });
 
   it("defaults missing timestamps to empty string", () => {

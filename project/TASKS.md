@@ -697,9 +697,25 @@ Acceptance criteria:
 
 ## TASK-062 — Snapshot history UI
 
-Status: BACKLOG
+Status: DONE
 Priority: P1
-Dependencies: TASK-061, TASK-023
+Dependencies: TASK-061 (DONE), TASK-023 (DONE)
+
+Goal:
+
+Display the full snapshot history for a job in the detail view, allowing users to browse and inspect individual snapshots.
+
+Acceptance criteria:
+
+- [x] Snapshot list in detail view shows each snapshot with capturedAt, sorted newest first
+- [x] Clicking a snapshot replaces the detail content with that snapshot's full data (title, company, location, salary, URL, description, requirements, responsibilities)
+- [x] Snapshot detail includes a "Back to job" button that returns to the job detail view
+- [x] Snapshot parsing validates all snapshot fields from companion payload
+- [x] Empty snapshot list shows appropriate message
+- [x] All rendering uses createElement/textContent (no innerHTML)
+- [x] Tests for snapshot parsing, snapshot list rendering, and snapshot detail state
+- [x] `npm run typecheck` and `npm test` pass
+- [x] No new permissions, no network access
 
 ## TASK-063 — Comparison view
 

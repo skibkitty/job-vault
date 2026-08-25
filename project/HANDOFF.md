@@ -9,32 +9,38 @@ Date:
 2026-08-25
 
 Tasks:
-TASK-060 merged to main, then TASK-061 (DONE, branch task/TASK-061)
+TASK-060 merged to main, TASK-061 merged to main, TASK-062 (DONE, branch task/TASK-062)
 
 ## What has been done
 
 ### TASK-060 (merged to main)
 
-- Merged task/TASK-060 into main (PR was ready from prior session).
-- This brought `joblist.ts`, `popup.ts` rewrite, `popup.html` updates, `background.ts` job.list forwarding, and `joblist.test.ts` into main.
+- Merged task/TASK-060 into main.
 
-### TASK-061 (branch task/TASK-061)
+### TASK-061 (merged to main)
 
-- Created `extension/src/ui/jobdetail.ts`: pure data layer — strict payload validation
-  (`parseJobDetail` with all Job+Snapshot fields), http/https-only URL normalization,
-  `DetailState` type (loading/detail-ready/not-found/locked/unavailable/not-implemented/error),
-  `resolveDetailState` mapping from IPC responses.
-- Updated `extension/src/ui/popup.html`: added `list-view`/`detail-view` containers, back button,
-  detail-view CSS (title, meta, sections, lists, snapshot info), widened popup to 360px, made
-  job items clickable with hover highlight.
-- Updated `extension/src/ui/popup.ts`: view switching (list/detail), click handler on job items
-  triggers `loadJobDetail` via `chrome.runtime.sendMessage`, detail rendering via createElement/textContent
-  (no innerHTML), back button returns to list, all DetailStates handled.
-- Updated `extension/src/background.ts`: `onMessage` handler now routes both `jobList` (job.list)
-  and `jobDetail` (job.get) to the companion via native messaging. Added `errorResponse` helper
-  for structured error replies.
-- Created `extension/test/jobdetail.test.ts` (27 tests): parsing, validation, URL safety, error
-  state mapping, resolveDetailState.
+- Implemented job detail view in popup (see prior handoff for details).
+- Merged task/TASK-061 into main.
+
+### TASK-062 (branch task/TASK-062)
+
+- Updated `extension/src/ui/jobdetail.ts`: added `SnapshotDetail` interface extending
+  `SnapshotSummary` with full job fields (title, company, location, url, salary,
+  employmentType, description, requirements, responsibilities); added `parseSnapshotDetail`
+  with strict validation; added `sortSnapshots` (newest first, id tiebreak); updated
+  `parseJobDetail` to parse full `SnapshotDetail` objects.
+- Updated `extension/src/ui/popup.html`: added snapshot list, snapshot item, snapshot item
+  date/id, snapshot back button, and snapshot empty styles.
+- Updated `extension/src/ui/popup.ts`: refactored rendering into reusable helpers
+  (`renderJobSection`, `renderJobMeta`, `renderJobUrl`, `renderJobDescription`,
+  `renderJobRequirements`, `renderJobResponsibilities`); added `renderSnapshotList`
+  (clickable snapshot items with capturedAt + id); added `renderSnapshotDetail` (shows
+  snapshot's full job data with "Back to job" button); back button now handles both
+  snapshot-to-job and job-to-list navigation; tracks `currentDetail` and `viewingSnapshot`.
+- Updated `extension/test/jobdetail.test.ts` (40 tests): added `parseSnapshotDetail` tests
+  (valid, missing id/title, non-object, optional fields, url safety, array filtering),
+  `sortSnapshots` tests (newest first, id tiebreak, empty capturedAt last), snapshot
+  detail parsing with full fields, snapshot skip/invalid tests.
 - No new permissions, no network access, no new dependencies.
 
 ## Blocker (unchanged)
@@ -43,75 +49,72 @@ Windows Smart App Control is On:
 - All Rust test execution blocked (cargo test harnesses, build scripts).
 - Extension tooling (node/vitest) unaffected.
 - Only the user can turn SAC off.
-- Affects: TASK-051 (diff engine), TASK-042 (similarity matching), TASK-052+ (bullet diff, etc.),
-  all Rust hardening tasks.
 
 ## What works
 
-- TASK-061 end-to-end at the code level; verified by automated tests:
+- TASK-062 end-to-end at the code level; verified by automated tests:
   - `npm run typecheck` — pass
-  - `npm test` (vitest) — 73 passed (27 new)
+  - `npm test` (vitest) — 86 passed (13 new)
   - `npm run build` (tsc emit) — pass
-- Popup job list (TASK-060) and job detail view (TASK-061) both functional.
-- Clicking a job in the list shows the detail view; back button returns to list.
-- Companion still returns NOT_IMPLEMENTED for job.list and job.get (expected; UI handles gracefully).
+- Job list, job detail, snapshot history, and snapshot detail views all functional.
+- Navigation: list → detail → snapshot detail, with back buttons at each level.
 
 ## What does not work
 
-- Companion does not yet serve real job data (NOT_IMPLEMENTED).
-- Rust test execution on this machine while SAC is On.
+- Companion still returns NOT_IMPLEMENTED for job.list and job.get.
+- Rust test execution blocked by Smart App Control.
 
 ## Tests run
 
-- Extension: typecheck + vitest (73 passed) + tsc build.
+- Extension: typecheck + vitest (86 passed) + tsc build.
 - Rust: none executable (SAC).
 
-## Files changed (task/TASK-061)
+## Files changed (task/TASK-062)
 
-- extension/src/ui/jobdetail.ts (new)
-- extension/src/ui/popup.ts (updated with detail view)
-- extension/src/ui/popup.html (updated with detail view, back button, CSS)
-- extension/src/background.ts (updated with jobDetail/job.get forwarding)
-- extension/test/jobdetail.test.ts (new)
+- extension/src/ui/jobdetail.ts (SnapshotDetail type, sortSnapshots)
+- extension/src/ui/popup.ts (snapshot rendering, refactored helpers, back navigation)
+- extension/src/ui/popup.html (snapshot CSS styles)
+- extension/test/jobdetail.test.ts (13 new tests)
 - project/TASKS.md, project/CURRENT_STATE.md, project/HANDOFF.md
-
-## Important discoveries
-
-- TASK-060 had not been merged to main when starting TASK-061; had to merge it first
-  (git stash, checkout main, merge task/TASK-060, checkout task/TASK-061, rebase, stash pop).
-- The merge required conflict resolution in background.ts, popup.ts, and popup.html.
 
 ## Decisions
 
-- Popup uses list-view/detail-view container toggling (not side panel or new tab) for
-  simplicity and consistency with existing popup architecture.
-- Job items in the list are now clickable `<li>` elements with `dataset.jobId` for
-  correlation, rather than containing external links (links are in the detail view only).
-- Detail state includes "not-found" for cases where companion succeeds but returns no data
-  for a given jobId.
+- Snapshot detail replaces the job detail content in the same detail view, with a
+  "Back to job" button that re-renders the job detail. This avoids adding a third
+  view layer while keeping navigation intuitive.
+- Back button behavior is context-aware: from snapshot detail it goes back to job
+  detail; from job detail it goes back to job list.
+- Refactored shared rendering logic (meta, url, description, requirements,
+  responsibilities) into reusable helpers to avoid duplication between job detail
+  and snapshot detail rendering.
 
 ## Known risks
 
-- Companion payload shape for job.get is not finalized (NOT_IMPLEMENTED server-side);
-  UI validation may need a small follow-up when the real schema lands.
-- TASK-051 diff logic remains runtime-unverified until SAC is resolved.
+- Companion payload shape for job.get snapshots is not finalized; UI validation
+  may need adjustment when the real schema lands.
+- All Rust tasks (TASK-042, TASK-051, TASK-052+, TASK-075, TASK-076) remain
+  blocked on Smart App Control.
 
 ## Next recommended action
 
-1. Merge PR for task/TASK-061 after review.
-2. TASK-062 — Snapshot history UI (depends on TASK-061 DONE and TASK-023 DONE; extension-side, no Rust blocker).
-3. User disables Smart App Control (or permits local build output), then:
-   - checkout task/TASK-051, run cargo test, fix failures, mark TASK-051 DONE;
-   - continue Rust roadmap (TASK-042 similarity matching or TASK-052 bullet diff).
+1. Merge PR for task/TASK-062 after review.
+2. Remaining Phase 6 UI tasks (TASK-063 comparison view, TASK-064 change highlighting,
+   TASK-065 keyword view) are all BLOCKED on TASK-055 (change ranking, Rust).
+3. No remaining unblocked extension-side tasks with defined acceptance criteria.
+   Options:
+   - User defines a new extension-side task (e.g., IPC robustness testing TASK-074).
+   - User disables Smart App Control to unblock Rust tasks.
+   - User merges pending Rust PRs and continues the diff engine roadmap.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
 2. Check `(Get-MpComputerStatus).SmartAppControlState`.
-3. If On: work extension-side only (node-based tasks run fine). TASK-062 is next.
-4. If Off: finish TASK-051 first (tests already written on its branch), then proceed
-   to TASK-042/TASK-052 per the registry.
+3. If On: all remaining extension UI tasks (TASK-063+) are blocked on Rust.
+   No unblocked extension-side tasks remain with defined acceptance criteria.
+4. If Off: finish TASK-051 first, then continue Rust roadmap.
 
 ## Blockers
 
-- TASK-051 / all Rust verification: Windows Smart App Control On (human action needed).
+- All Phase 6 UI tasks after TASK-062: BLOCKED on TASK-055 (Rust diff engine).
+- All Rust tasks: BLOCKED on Windows Smart App Control (human action needed).

@@ -6,6 +6,18 @@ export interface SnapshotSummary {
   capturedAt: string;
 }
 
+export interface SnapshotDetail extends SnapshotSummary {
+  title: string;
+  company: string | null;
+  location: string | null;
+  url: string | null;
+  salary: string | null;
+  employmentType: string | null;
+  description: string;
+  requirements: string[];
+  responsibilities: string[];
+}
+
 export interface JobDetail {
   id: string;
   title: string;
@@ -17,7 +29,7 @@ export interface JobDetail {
   description: string;
   requirements: string[];
   responsibilities: string[];
-  snapshots: SnapshotSummary[];
+  snapshots: SnapshotDetail[];
   createdAt: string;
   updatedAt: string;
 }
@@ -57,12 +69,35 @@ function parseStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 }
 
-function parseSnapshotSummary(raw: unknown): SnapshotSummary | null {
+export function parseSnapshotDetail(raw: unknown): SnapshotDetail | null {
   if (!isRecord(raw)) return null;
   const id = optionalText(raw.id);
-  const capturedAt = typeof raw.capturedAt === "string" ? raw.capturedAt : "";
-  if (!id) return null;
-  return { id, capturedAt };
+  const title = optionalText(raw.title);
+  if (!id || !title) return null;
+
+  return {
+    id,
+    title,
+    capturedAt: typeof raw.capturedAt === "string" ? raw.capturedAt : "",
+    company: optionalText(raw.company),
+    location: optionalText(raw.location),
+    url: safeUrl(raw.url),
+    salary: optionalText(raw.salary),
+    employmentType: optionalText(raw.employmentType),
+    description:
+      typeof raw.description === "string" ? raw.description.trim() : "",
+    requirements: parseStringArray(raw.requirements),
+    responsibilities: parseStringArray(raw.responsibilities),
+  };
+}
+
+export function sortSnapshots(snapshots: SnapshotDetail[]): SnapshotDetail[] {
+  return [...snapshots].sort((a, b) => {
+    if (a.capturedAt !== b.capturedAt) {
+      return a.capturedAt < b.capturedAt ? 1 : -1;
+    }
+    return a.id.localeCompare(b.id);
+  });
 }
 
 export function parseJobDetail(raw: unknown): JobDetail | null {
@@ -75,10 +110,10 @@ export function parseJobDetail(raw: unknown): JobDetail | null {
   const description =
     typeof raw.description === "string" ? raw.description.trim() : "";
 
-  const snapshots: SnapshotSummary[] = [];
+  const snapshots: SnapshotDetail[] = [];
   if (Array.isArray(raw.snapshots)) {
     for (const entry of raw.snapshots) {
-      const parsed = parseSnapshotSummary(entry);
+      const parsed = parseSnapshotDetail(entry);
       if (parsed) snapshots.push(parsed);
     }
   }
