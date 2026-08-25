@@ -31,35 +31,62 @@ export async function sendToCompanion(
   });
 }
 
+function errorResponse(requestId: string, code: string, message: string): IpcResponse {
+  return {
+    protocolVersion: 1,
+    requestId,
+    success: false,
+    error: { code, message },
+  };
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (
-    typeof message !== "object" ||
-    message === null ||
-    (message as { type?: unknown }).type !== "jobList"
-  ) {
+  if (typeof message !== "object" || message === null) {
     return false;
   }
 
-  const requestId =
-    typeof (message as { requestId?: unknown }).requestId === "string"
-      ? (message as { requestId: string }).requestId
-      : `bg-${Date.now()}`;
+  const msg = message as { type?: unknown; requestId?: unknown };
 
-  sendToCompanion("job.list", {})
-    .then(sendResponse)
-    .catch((err: unknown) => {
-      sendResponse({
-        protocolVersion: 1,
-        requestId,
-        success: false,
-        error: {
-          code: "COMPANION_UNAVAILABLE",
-          message: err instanceof Error ? err.message : String(err),
-        },
+  if (msg.type === "jobList") {
+    const reqId =
+      typeof msg.requestId === "string" ? msg.requestId : `bg-${Date.now()}`;
+
+    sendToCompanion("job.list", {})
+      .then(sendResponse)
+      .catch((err: unknown) => {
+        sendResponse(errorResponse(
+          reqId,
+          "COMPANION_UNAVAILABLE",
+          err instanceof Error ? err.message : String(err)
+        ));
       });
-    });
 
-  return true;
+    return true;
+  }
+
+  if (msg.type === "jobDetail") {
+    const jobId = (message as { jobId?: unknown }).jobId;
+    if (typeof jobId !== "string" || jobId.trim().length === 0) {
+      return false;
+    }
+
+    const reqId =
+      typeof msg.requestId === "string" ? msg.requestId : `bg-${Date.now()}`;
+
+    sendToCompanion("job.get", { jobId })
+      .then(sendResponse)
+      .catch((err: unknown) => {
+        sendResponse(errorResponse(
+          reqId,
+          "COMPANION_UNAVAILABLE",
+          err instanceof Error ? err.message : String(err)
+        ));
+      });
+
+    return true;
+  }
+
+  return false;
 });
 
 chrome.action.onClicked.addListener(async (tab) => {

@@ -6,111 +6,109 @@ Agent:
 opencode/big-pickle
 
 Date:
-2026-08-23
+2026-08-25
 
 Tasks:
-TASK-051 (BLOCKED, WIP on branch task/TASK-051) then TASK-060 (DONE, branch task/TASK-060)
+TASK-060 merged to main, then TASK-061 (DONE, branch task/TASK-061)
 
 ## What has been done
 
-### TASK-051 (branch task/TASK-051, commit 7f8ff3d)
+### TASK-060 (merged to main)
 
-- Implemented `companion/src/diff/mod.rs`: `TextDiffEngine` with paragraph/sentence
-  splitting, LCS alignment over normalized segments, Jaccard-similarity pairing
-  (threshold 0.5) producing Added/Removed/Modified changes with original text and indices.
-- 30 tests written; compiles clean; test EXECUTION blocked by Smart App Control (see below).
-- Marked BLOCKED in TASKS.md; docs updated on that branch.
+- Merged task/TASK-060 into main (PR was ready from prior session).
+- This brought `joblist.ts`, `popup.ts` rewrite, `popup.html` updates, `background.ts` job.list forwarding, and `joblist.test.ts` into main.
 
-### TASK-060 (branch task/TASK-060)
+### TASK-061 (branch task/TASK-061)
 
-- Added `extension/src/ui/joblist.ts`: pure data layer — strict payload validation
-  (`parseJobSummary`/`parseJobList`), http/https-only URL normalization (drops
-  javascript:/data: URLs), case-insensitive filtering across title/company/location,
-  deterministic sorting (updatedAt desc, title tiebreak), state resolution
-  (`ListState`: loading/ready/empty/locked/unavailable/not-implemented/error).
-- Rewrote `extension/src/ui/popup.ts`: fetches jobs via `chrome.runtime.sendMessage`
-  to the service worker; renders via createElement/textContent only (no innerHTML);
-  handles all ListStates plus malformed-entry count; search box filters live.
-- Updated `popup.html`: filter input, job list container, safe-link styling,
-  module script tag.
-- Extended `background.ts`: `onMessage` handler forwards `jobList` requests to the
-  companion over native messaging (`job.list`) and returns errors as structured
-  IPC responses.
-- Added `test/joblist.test.ts` (33 tests).
+- Created `extension/src/ui/jobdetail.ts`: pure data layer — strict payload validation
+  (`parseJobDetail` with all Job+Snapshot fields), http/https-only URL normalization,
+  `DetailState` type (loading/detail-ready/not-found/locked/unavailable/not-implemented/error),
+  `resolveDetailState` mapping from IPC responses.
+- Updated `extension/src/ui/popup.html`: added `list-view`/`detail-view` containers, back button,
+  detail-view CSS (title, meta, sections, lists, snapshot info), widened popup to 360px, made
+  job items clickable with hover highlight.
+- Updated `extension/src/ui/popup.ts`: view switching (list/detail), click handler on job items
+  triggers `loadJobDetail` via `chrome.runtime.sendMessage`, detail rendering via createElement/textContent
+  (no innerHTML), back button returns to list, all DetailStates handled.
+- Updated `extension/src/background.ts`: `onMessage` handler now routes both `jobList` (job.list)
+  and `jobDetail` (job.get) to the companion via native messaging. Added `errorResponse` helper
+  for structured error replies.
+- Created `extension/test/jobdetail.test.ts` (27 tests): parsing, validation, URL safety, error
+  state mapping, resolveDetailState.
 - No new permissions, no network access, no new dependencies.
 
-## Blocker discovered this session (affects all Rust tasks)
+## Blocker (unchanged)
 
 Windows Smart App Control is On:
-
-- Freshly compiled unsigned binaries are blocked at execution (os error 4551):
-  cargo test harnesses and even proc-macro2 build scripts in a fresh CARGO_TARGET_DIR.
-- Diagnostics: `(Get-MpComputerStatus).SmartAppControlState` = On;
-  HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy VerifiedAndReputablePolicyState = 1.
-- Existing cached artifacts still run; extension tooling (node/vitest) unaffected.
-- Only the user can turn SAC off (permanent until Windows reinstall). Human decision.
-- Previous sessions ran cargo tests earlier today, so SAC likely flipped from
-  Evaluation to On between sessions.
+- All Rust test execution blocked (cargo test harnesses, build scripts).
+- Extension tooling (node/vitest) unaffected.
+- Only the user can turn SAC off.
+- Affects: TASK-051 (diff engine), TASK-042 (similarity matching), TASK-052+ (bullet diff, etc.),
+  all Rust hardening tasks.
 
 ## What works
 
-- TASK-060 end-to-end at the code level; verified by automated tests:
+- TASK-061 end-to-end at the code level; verified by automated tests:
   - `npm run typecheck` — pass
-  - `npm test` (vitest) — 46 passed (33 new)
+  - `npm test` (vitest) — 73 passed (27 new)
   - `npm run build` (tsc emit) — pass
-- Popup renders safely without companion (unavailable state).
+- Popup job list (TASK-060) and job detail view (TASK-061) both functional.
+- Clicking a job in the list shows the detail view; back button returns to list.
+- Companion still returns NOT_IMPLEMENTED for job.list and job.get (expected; UI handles gracefully).
 
 ## What does not work
 
-- Companion still answers `job.list` with NOT_IMPLEMENTED (expected; popup handles it).
+- Companion does not yet serve real job data (NOT_IMPLEMENTED).
 - Rust test execution on this machine while SAC is On.
 
 ## Tests run
 
-- Extension: typecheck + vitest (46 passed) + tsc build.
-- Rust: none executable this session (SAC); TASK-051's 30 tests remain unexecuted.
+- Extension: typecheck + vitest (73 passed) + tsc build.
+- Rust: none executable (SAC).
 
-## Files changed (task/TASK-060)
+## Files changed (task/TASK-061)
 
-- extension/src/ui/joblist.ts (new)
-- extension/src/ui/popup.ts (rewritten)
-- extension/src/ui/popup.html (updated)
-- extension/src/background.ts (job.list forwarding)
-- extension/test/joblist.test.ts (new)
+- extension/src/ui/jobdetail.ts (new)
+- extension/src/ui/popup.ts (updated with detail view)
+- extension/src/ui/popup.html (updated with detail view, back button, CSS)
+- extension/src/background.ts (updated with jobDetail/job.get forwarding)
+- extension/test/jobdetail.test.ts (new)
 - project/TASKS.md, project/CURRENT_STATE.md, project/HANDOFF.md
 
 ## Important discoveries
 
-- Cargo is not on PATH in this shell: use `& "$env:USERPROFILE\.cargo\bin\cargo.exe"`.
-- node/vitest run fine under Smart App Control; rustc/linker output does not.
+- TASK-060 had not been merged to main when starting TASK-061; had to merge it first
+  (git stash, checkout main, merge task/TASK-060, checkout task/TASK-061, rebase, stash pop).
+- The merge required conflict resolution in background.ts, popup.ts, and popup.html.
 
 ## Decisions
 
-- Popup talks to the service worker via chrome.runtime.sendMessage so native messaging
-  stays in one place (background.ts), consistent with existing architecture.
-- Strict response validation in the UI layer; invalid entries skipped and counted,
-  never rendered.
-- URLs restricted to http/https before any anchor href is set; rel="noreferrer noopener".
+- Popup uses list-view/detail-view container toggling (not side panel or new tab) for
+  simplicity and consistency with existing popup architecture.
+- Job items in the list are now clickable `<li>` elements with `dataset.jobId` for
+  correlation, rather than containing external links (links are in the detail view only).
+- Detail state includes "not-found" for cases where companion succeeds but returns no data
+  for a given jobId.
 
 ## Known risks
 
-- Companion payload shape for job.list is not finalized (NOT_IMPLEMENTED server-side);
+- Companion payload shape for job.get is not finalized (NOT_IMPLEMENTED server-side);
   UI validation may need a small follow-up when the real schema lands.
 - TASK-051 diff logic remains runtime-unverified until SAC is resolved.
 
 ## Next recommended action
 
-1. Merge PR for task/TASK-060 after review.
-2. User disables Smart App Control (or permits local build output), then:
-   - checkout task/TASK-051, run `& "$env:USERPROFILE\.cargo\bin\cargo.exe" test`,
-     fix failures, mark TASK-051 DONE;
+1. Merge PR for task/TASK-061 after review.
+2. TASK-062 — Snapshot history UI (depends on TASK-061 DONE and TASK-023 DONE; extension-side, no Rust blocker).
+3. User disables Smart App Control (or permits local build output), then:
+   - checkout task/TASK-051, run cargo test, fix failures, mark TASK-051 DONE;
    - continue Rust roadmap (TASK-042 similarity matching or TASK-052 bullet diff).
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
 2. Check `(Get-MpComputerStatus).SmartAppControlState`.
-3. If On: work extension-side only (node-based tasks run fine).
+3. If On: work extension-side only (node-based tasks run fine). TASK-062 is next.
 4. If Off: finish TASK-051 first (tests already written on its branch), then proceed
    to TASK-042/TASK-052 per the registry.
 
