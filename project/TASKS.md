@@ -664,9 +664,26 @@ Acceptance criteria:
 
 ## TASK-053 — Moved/reordered detection
 
-Status: BACKLOG
+Status: DONE
 Priority: P1
-Dependencies: TASK-052
+Dependencies: TASK-052 (DONE)
+
+Goal:
+
+Detect when bullets/segments are moved or reordered between two snapshots rather than reported as removed-and-added.
+
+Acceptance criteria:
+
+- [x] Add a `Moved` change type distinct from Added/Removed/Modified
+- [x] Detect a single moved item (same content, changed position)
+- [x] Detect full reordering of a list without false Removed/Added pairs
+- [x] Item content matched by TASK-050 normalization (case/whitespace/punctuation tolerant)
+- [x] Works for bullets (`diff_bullets_reordered`) and generic segments (`diff_segments_reordered`)
+- [x] Modified/added/removed classification still honored when items genuinely differ
+- [x] Fully deterministic: identical inputs produce identical output
+- [x] No LLM, no network access, no new external dependencies
+- [x] Tests for swap, rotation, move-to-end, addition+move, normalization tolerance, modification+removal, and determinism
+- [x] All tests pass (228 passed, 0 failed; run via WSL)
 
 ## TASK-054 — Requirement/responsibility changes
 

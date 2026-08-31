@@ -9,6 +9,7 @@ pub enum ChangeType {
     Added,
     Removed,
     Modified,
+    Moved,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -194,6 +195,25 @@ impl TextDiffEngine {
         self.diff_segments(&Self::split_bullets(old_text), &Self::split_bullets(new_text))
     }
 
+    pub fn diff_bullets_reordered(&self, old_text: &str, new_text: &str) -> DiffResult {
+        self.diff_segments_reordered(
+            &Self::split_bullets(old_text),
+            &Self::split_bullets(new_text),
+        )
+    }
+
+    pub fn diff_segments_reordered(
+        &self,
+        old_segments: &[String],
+        new_segments: &[String],
+    ) -> DiffResult {
+        Self::reordered_changes(
+            old_segments,
+            new_segments,
+            self.similarity_threshold,
+        )
+    }
+
     pub fn similarity(a_normalized: &str, b_normalized: &str) -> f64 {
         let a_tokens: HashSet<&str> = a_normalized
             .split_whitespace()
@@ -359,6 +379,229 @@ impl TextDiffEngine {
                 });
             }
         }
+    }
+
+    fn reordered_changes(
+        old_segments: &[String],
+        new_segments: &[String],
+        threshold: f64,
+    ) -> DiffResult {
+        let old_norm: Vec<String> = old_segments
+            .iter()
+            .map(|s| TextNormalizer::normalize_for_comparison(s))
+            .collect();
+        let new_norm: Vec<String> = new_segments
+            .iter()
+            .map(|s| TextNormalizer::normalize_for_comparison(s))
+            .collect();
+
+        let old_used = vec![false; old_segments.len()];
+        let new_used = vec![false; new_segments.len()];
+
+        let mut changes = Vec::new();
+        let (unchanged, old_used, new_used) =
+            Self::anchor_identical(&old_norm, &new_norm, old_used, new_used);
+
+        let (old_used, new_used) = Self::match_moved(
+            &old_norm,
+            &new_norm,
+            old_segments,
+            new_segments,
+            old_used,
+            new_used,
+            &mut changes,
+        );
+
+        let (mut removed, mut added) = Self::collect_unmatched(
+            old_segments,
+            new_segments,
+            &old_norm,
+            &new_norm,
+            &old_used,
+            &new_used,
+        );
+
+        Self::pair_modified(&mut removed, &mut added, threshold, &mut changes);
+
+        for r in removed {
+            changes.push(SegmentChange {
+                change_type: ChangeType::Removed,
+                content: r.text,
+                previous_content: None,
+                old_index: Some(r.index),
+                new_index: None,
+            });
+        }
+        for a in added {
+            changes.push(SegmentChange {
+                change_type: ChangeType::Added,
+                content: a.text,
+                previous_content: None,
+                old_index: None,
+                new_index: Some(a.index),
+            });
+        }
+
+        DiffResult {
+            changes,
+            unchanged_count: unchanged,
+        }
+    }
+
+    fn anchor_identical(
+        old_norm: &[String],
+        new_norm: &[String],
+        mut old_used: Vec<bool>,
+        mut new_used: Vec<bool>,
+    ) -> (usize, Vec<bool>, Vec<bool>) {
+        let table = Self::lcs_table(old_norm, new_norm);
+        let mut unchanged = 0usize;
+        let mut i = 0usize;
+        let mut j = 0usize;
+
+        while i < old_norm.len() && j < new_norm.len() {
+            if old_norm[i] == new_norm[j] {
+                if !old_used[i] && !new_used[j] {
+                    old_used[i] = true;
+                    new_used[j] = true;
+                    unchanged += 1;
+                }
+                i += 1;
+                j += 1;
+            } else if table[i + 1][j] >= table[i][j + 1] {
+                i += 1;
+            } else {
+                j += 1;
+            }
+        }
+
+        (unchanged, old_used, new_used)
+    }
+
+    fn match_moved(
+        old_norm: &[String],
+        new_norm: &[String],
+        old_segments: &[String],
+        new_segments: &[String],
+        mut old_used: Vec<bool>,
+        mut new_used: Vec<bool>,
+        changes: &mut Vec<SegmentChange>,
+    ) -> (Vec<bool>, Vec<bool>) {
+        let mut moved = true;
+        while moved {
+            moved = false;
+            for (oi, on) in old_norm.iter().enumerate() {
+                if old_used[oi] {
+                    continue;
+                }
+                for (ni, nn) in new_norm.iter().enumerate() {
+                    if new_used[ni] {
+                        continue;
+                    }
+                    if on == nn {
+                        old_used[oi] = true;
+                        new_used[ni] = true;
+                        changes.push(SegmentChange {
+                            change_type: ChangeType::Moved,
+                            content: new_segments[ni].clone(),
+                            previous_content: Some(old_segments[oi].clone()),
+                            old_index: Some(oi),
+                            new_index: Some(ni),
+                        });
+                        moved = true;
+                        break;
+                    }
+                }
+                if moved {
+                    break;
+                }
+            }
+        }
+        (old_used, new_used)
+    }
+
+    fn collect_unmatched(
+        old_segments: &[String],
+        new_segments: &[String],
+        old_norm: &[String],
+        new_norm: &[String],
+        old_used: &[bool],
+        new_used: &[bool],
+    ) -> (Vec<PendingChange>, Vec<PendingChange>) {
+        let mut removed = Vec::new();
+        let mut added = Vec::new();
+        for (i, s) in old_segments.iter().enumerate() {
+            if !old_used[i] {
+                removed.push(PendingChange {
+                    index: i,
+                    text: s.clone(),
+                    normalized: old_norm[i].clone(),
+                });
+            }
+        }
+        for (j, s) in new_segments.iter().enumerate() {
+            if !new_used[j] {
+                added.push(PendingChange {
+                    index: j,
+                    text: s.clone(),
+                    normalized: new_norm[j].clone(),
+                });
+            }
+        }
+        (removed, added)
+    }
+
+    fn pair_modified(
+        removed: &mut Vec<PendingChange>,
+        added: &mut Vec<PendingChange>,
+        threshold: f64,
+        changes: &mut Vec<SegmentChange>,
+    ) {
+        let mut consumed_removed = vec![false; removed.len()];
+        let mut consumed_added = vec![false; added.len()];
+
+        for (r_index, r) in removed.iter().enumerate() {
+            if consumed_removed[r_index] {
+                continue;
+            }
+            let mut best: Option<(usize, f64)> = None;
+            for (a_index, a) in added.iter().enumerate() {
+                if consumed_added[a_index] {
+                    continue;
+                }
+                let score = Self::similarity(&r.normalized, &a.normalized);
+                if score >= threshold && best.map_or(true, |(_, s)| score > s) {
+                    best = Some((a_index, score));
+                }
+            }
+            if let Some((a_index, _)) = best {
+                consumed_removed[r_index] = true;
+                consumed_added[a_index] = true;
+                changes.push(SegmentChange {
+                    change_type: ChangeType::Modified,
+                    content: added[a_index].text.clone(),
+                    previous_content: Some(r.text.clone()),
+                    old_index: Some(r.index),
+                    new_index: Some(added[a_index].index),
+                });
+            }
+        }
+
+        let mut kept_removed = Vec::new();
+        for (i, r) in removed.drain(..).enumerate() {
+            if !consumed_removed[i] {
+                kept_removed.push(r);
+            }
+        }
+        *removed = kept_removed;
+
+        let mut kept_added = Vec::new();
+        for (i, a) in added.drain(..).enumerate() {
+            if !consumed_added[i] {
+                kept_added.push(a);
+            }
+        }
+        *added = kept_added;
     }
 
     fn lcs_table(a: &[String], b: &[String]) -> Vec<Vec<usize>> {
@@ -843,6 +1086,160 @@ mod tests {
         let new = "- Gamma\n- Alpha\n- Delta";
         let first = engine.diff_bullets(old, new);
         let second = engine.diff_bullets(old, new);
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn reordered_pure_rotation_detects_moved() {
+        let engine = TextDiffEngine::new();
+        let old = vec!["Alpha".to_string(), "Beta".to_string(), "Gamma".to_string()];
+        let new = vec!["Gamma".to_string(), "Alpha".to_string(), "Beta".to_string()];
+        let result = engine.diff_segments_reordered(&old, &new);
+        assert_eq!(result.unchanged_count, 2);
+        assert_eq!(result.changes.len(), 1);
+        assert_eq!(result.changes[0].change_type, ChangeType::Moved);
+        assert_eq!(result.changes[0].old_index, Some(2));
+        assert_eq!(result.changes[0].new_index, Some(0));
+    }
+
+    #[test]
+    fn reordered_single_move_to_end() {
+        let engine = TextDiffEngine::new();
+        let old = vec!["Alpha".to_string(), "Beta".to_string(), "Gamma".to_string()];
+        let new = vec!["Beta".to_string(), "Gamma".to_string(), "Alpha".to_string()];
+        let result = engine.diff_segments_reordered(&old, &new);
+        let moved: Vec<_> = result
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Moved)
+            .collect();
+        assert_eq!(moved.len(), 1);
+        assert_eq!(moved[0].content, "Alpha");
+        assert_eq!(result.unchanged_count, 2);
+    }
+
+    #[test]
+    fn reordered_identical_stays_unchanged() {
+        let engine = TextDiffEngine::new();
+        let old = vec!["Alpha".to_string(), "Beta".to_string()];
+        let new = vec!["Alpha".to_string(), "Beta".to_string()];
+        let result = engine.diff_segments_reordered(&old, &new);
+        assert!(result.changes.is_empty());
+        assert_eq!(result.unchanged_count, 2);
+    }
+
+    #[test]
+    fn reordered_parallel_swap_reports_moved() {
+        let engine = TextDiffEngine::new();
+        // An adjacent-pair swap is detected as moves, not removes/adds. With an even
+        // number of swapped items, LCS anchors half in relative order and the other
+        // half are classified as moved.
+        let old = vec!["One".to_string(), "Two".to_string(), "Three".to_string(), "Four".to_string()];
+        let new = vec!["Two".to_string(), "One".to_string(), "Four".to_string(), "Three".to_string()];
+        let result = engine.diff_segments_reordered(&old, &new);
+        assert!(result.changes.iter().all(|c| c.change_type != ChangeType::Removed
+            && c.change_type != ChangeType::Added));
+        assert!(result
+            .changes
+            .iter()
+            .any(|c| c.change_type == ChangeType::Moved));
+        assert!(result.changes.iter().all(|c| c.change_type == ChangeType::Moved));
+        assert_eq!(result.changes.len(), 2);
+        assert_eq!(result.unchanged_count, 2);
+    }
+
+    #[test]
+    fn reordered_bullet_rotation() {
+        let engine = TextDiffEngine::new();
+        let old = "- Build the pipeline\n- Write docs\n- Review PRs";
+        let new = "- Review PRs\n- Build the pipeline\n- Write docs";
+        let result = engine.diff_bullets_reordered(old, new);
+        assert_eq!(result.unchanged_count, 2);
+        assert_eq!(result.changes.len(), 1);
+        assert_eq!(result.changes[0].change_type, ChangeType::Moved);
+        assert_eq!(result.changes[0].content, "Review PRs");
+    }
+
+    #[test]
+    fn reordered_addition_and_move() {
+        let engine = TextDiffEngine::new();
+        let old = vec!["Alpha".to_string(), "Beta".to_string()];
+        let new = vec!["Beta".to_string(), "NewX".to_string(), "Alpha".to_string()];
+        let result = engine.diff_segments_reordered(&old, &new);
+        let moved: Vec<_> = result
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Moved)
+            .collect();
+        let added: Vec<_> = result
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Added)
+            .collect();
+        assert_eq!(moved.len(), 1);
+        assert_eq!(added.len(), 1);
+        assert_eq!(added[0].content, "NewX");
+    }
+
+    #[test]
+    fn reordered_pure_addition_not_moved() {
+        let engine = TextDiffEngine::new();
+        let old = vec!["Alpha".to_string()];
+        let new = vec!["Alpha".to_string(), "Beta".to_string()];
+        let result = engine.diff_segments_reordered(&old, &new);
+        assert!(result.changes.iter().all(|c| c.change_type != ChangeType::Moved));
+        assert_eq!(result.changes.len(), 1);
+        assert_eq!(result.changes[0].change_type, ChangeType::Added);
+    }
+
+    #[test]
+    fn reordered_normalization_ignored_for_moves() {
+        let engine = TextDiffEngine::new();
+        let old = vec!["Fluent in Rust.".to_string(), "Strong SQL.".to_string()];
+        let new = vec!["strong sql.".to_string(), "fluent in rust.".to_string()];
+        let result = engine.diff_segments_reordered(&old, &new);
+        // With a two-item swap, LCS anchors one item as unchanged and reports the
+        // other as moved. No item is misclassified as added/removed.
+        assert!(result.changes.iter().all(|c| c.change_type == ChangeType::Moved));
+        assert_eq!(result.changes.len(), 1);
+        assert_eq!(result.unchanged_count, 1);
+    }
+
+    #[test]
+    fn reordered_with_modification_and_removal() {
+        let engine = TextDiffEngine::new();
+        let old = vec![
+            "Alpha stays".to_string(),
+            "Beta removed".to_string(),
+            "Gamma changed a bit".to_string(),
+        ];
+        let new = vec![
+            "Gamma changed just a little bit".to_string(),
+            "Alpha stays".to_string(),
+        ];
+        let result = engine.diff_segments_reordered(&old, &new);
+        assert!(result
+            .changes
+            .iter()
+            .any(|c| c.change_type == ChangeType::Modified));
+        assert!(result
+            .changes
+            .iter()
+            .any(|c| c.change_type == ChangeType::Removed));
+        assert!(result
+            .changes
+            .iter()
+            .all(|c| c.change_type != ChangeType::Moved));
+        assert_eq!(result.unchanged_count, 1);
+    }
+
+    #[test]
+    fn reordered_is_deterministic() {
+        let engine = TextDiffEngine::new();
+        let old = vec!["Alpha".to_string(), "Beta".to_string(), "Gamma".to_string()];
+        let new = vec!["Gamma".to_string(), "Beta".to_string(), "Delta".to_string()];
+        let first = engine.diff_segments_reordered(&old, &new);
+        let second = engine.diff_segments_reordered(&old, &new);
         assert_eq!(first, second);
     }
 }

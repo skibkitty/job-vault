@@ -9,7 +9,7 @@ Date:
 2026-08-31
 
 Tasks:
-TASK-051 (DONE, PR #19 open), TASK-052 (DONE, branch task/TASK-052).
+TASK-051 (DONE, PR #19 open), TASK-052 (DONE, PR #20 open), TASK-053 (DONE, branch task/TASK-053).
 TASK-060/061/062 (merged to main).
 
 ## What has been done
@@ -40,6 +40,23 @@ TASK-060/061/062 (merged to main).
 - Wrote 16 new tests (splitting variants, add/remove/modify, continuation lines,
   normalization tolerance, empty input, determinism).
 
+### TASK-053 (branch task/TASK-053 — moved/reordered detection)
+
+- Added `ChangeType::Moved` to the diff engine.
+- New deterministic move-detection pipeline (`reordered_changes`) with distinct passes:
+  1. `anchor_identical`: LCS-aligned in-order identical items are counted as unchanged.
+  2. `match_moved`: identical normalized content present in both (but not order-aligned)
+     is reported as `Moved` with `old_index`/`new_index`.
+  3. `pair_modified`: remaining items paired by Dice similarity (modified threshold).
+  4. Leftover items are `Added`/`Removed`.
+- Public entry points: `diff_segments_reordered(old, new)` and
+  `diff_bullets_reordered(old_text, new_text)`.
+- Distinguishes genuine reordering/moves from added/removed items; normalization
+  (case/punctuation) is ignored when matching moved content.
+- Wrote 10 new tests: rotation, move-to-end, identical, parallel swap, bullet
+  rotation, addition+move, pure addition (no false move), normalization tolerance,
+  modification+removal, determinism.
+
 ## Test execution workaround (important)
 
 Windows Smart App Control blocks executing freshly compiled unsigned binaries on the
@@ -50,14 +67,14 @@ Ubuntu through the MSVC-targeted Cargo project:
 wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/companion-NNN/ && . ~/.cargo/env && cargo test"
 ```
 
-- All 218 companion tests pass (202 prior + 16 new bullet-diff tests).
+- All 228 companion tests pass (202 prior phases + 26 diff-engine tests).
 - The default WSL distro is `docker-desktop` (no Rust toolchain); `Ubuntu` distro has
   the Rust toolchain configured.
 
 ## What works
 
-- TASK-051 paragraph/sentence diff and TASK-052 bullet diff: verified by 218 passing
-  Rust tests via WSL.
+- TASK-051 paragraph/sentence diff, TASK-052 bullet diff, and TASK-053
+  moved/reordered detection: verified by 228 passing Rust tests via WSL.
 - Extension UI merged through TASK-062 (job list, job detail, snapshot history/detail),
   verified by 86 extension tests.
 
@@ -69,17 +86,16 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
 
 ## Tests run
 
-- Rust: 218 passed, 0 failed (`cargo test` via WSL Ubuntu).
+- Rust: 228 passed, 0 failed (`cargo test` via WSL Ubuntu).
 - Extension: typecheck + vitest (86 passed) + tsc build (as of TASK-062).
 
-## Files changed (task/TASK-052)
+## Files changed (task/TASK-053)
 
-- companion/src/diff/mod.rs (split_bullets, diff_bullets, bullet tests)
-- project/TASKS.md (TASK-052 criteria; TASK-051 marked DONE)
+- companion/src/diff/mod.rs (ChangeType::Moved, reordered_changes pipeline,
+  diff_segments_reordered, diff_bullets_reordered, reorder tests)
+- project/TASKS.md (TASK-053 criteria, marked DONE)
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
-- Merge of origin/main brought in the extension UI work (TASK-060/061/062) so this
-  branch is current with main.
 
 ## Important discoveries
 
@@ -98,28 +114,36 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
   than duplicating diff logic.
 - Bullet continuation lines are joined onto the owning bullet with a single space to
   keep wrapped list items as one segment.
+- TASK-053 move detection is a multi-pass identity-then-similarity pipeline: identical
+  normalized content anywhere in the other sequence is a "Moved" (not added/removed);
+  only genuinely unmatched content becomes Added/Removed/Modified. LCS anchors keep
+  in-order identical items as unchanged, so a full swap is reported as
+  unchanged+move(s) rather than removed+added.
 
 ## Known risks
 
-- The TASK-052 branch was stacked on TASK-051 then merged with origin/main; doc merge
-  conflicts were resolved manually. When TASK-051's PR (#19) merges, revisit whether a
-  final rebase is needed before TASK-052 merges.
+- For an even swap, LCS anchors half the items as "unchanged" and reports the rest as
+  "moved" — this is an inherent ambiguity of reorder detection and is deterministic,
+  but downstream UI should not assume one "correct" canonical alignment.
 - Diff quality for real-world bullet prose is unverified against sanitized fixtures yet.
+- TASK-051/052/053 branches are stacked; merging order matters. Merge TASK-051 (#19),
+  TASK-052 (#20), then TASK-053.
 
 ## Next recommended action
 
-1. Merge PR for TASK-051 (#19) after review.
-2. Continue with TASK-053 — Moved/reordered detection (depends on TASK-052).
-   Define its acceptance criteria and implement in `companion/src/diff/mod.rs`.
-3. Then TASK-054 (requirement/responsibility changes) and TASK-055 (change ranking).
+1. Merge PRs for TASK-051 (#19), TASK-052 (#20), and TASK-053 in order.
+2. Continue with TASK-054 — Requirement/responsibility changes (depends on TASK-052).
+   Define acceptance criteria and implement in `companion/src/diff/mod.rs`.
+3. Then TASK-055 (change ranking).
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
 2. Run Rust tests via WSL Ubuntu (see workaround above); do not attempt to run
    freshly compiled Rust binaries directly on the Windows host.
-3. For the next Rust diff task, branch off `main` after TASK-051/#19 and TASK-052 merge,
-   or merge origin/main into a stacked branch and resolve doc conflicts.
+3. For the next Rust diff task (TASK-054), branch off `main` after TASK-051/#19,
+   TASK-052/#20, and TASK-053 merge, or merge origin/main into a stacked branch and
+   resolve doc conflicts.
 
 ## Blockers
 
