@@ -14,11 +14,11 @@ Phase 5 — Diff engine (core deterministic diffing); extension UI merged throug
 
 ## Current task
 
-TASK-053 (DONE) — Moved/reordered detection; PRs for TASK-051 (#19) and TASK-052 (#20) open
+TASK-054 (DONE) — Requirement/responsibility changes; PRs for TASK-051 (#19), TASK-052 (#20), TASK-053 (#21) open
 
 ## Recommended next action
 
-TASK-054 — Requirement/responsibility changes (depends on TASK-052). Then TASK-055 (change ranking). Merge TASK-051 (#19), TASK-052 (#20), and TASK-053 PRs.
+TASK-055 — Change ranking (depends on TASK-054). Merge TASK-051 (#19), TASK-052 (#20), TASK-053 (#21), and TASK-054 PRs.
 
 ## Completed
 
@@ -58,6 +58,7 @@ TASK-054 — Requirement/responsibility changes (depends on TASK-052). Then TASK
 - Paragraph/sentence diff engine implemented (TASK-051).
 - Bullet diff engine implemented (TASK-052).
 - Moved/reordered detection implemented (TASK-053).
+- Requirement/responsibility change detection implemented (TASK-054).
 - Popup job list with IPC fetch, safe rendering, filtering, and states implemented (TASK-060).
 - Popup job detail view with IPC fetch, safe rendering, and back navigation implemented (TASK-061).
 - Snapshot history UI with clickable snapshots, snapshot detail view, and back-to-job navigation implemented (TASK-062).
@@ -67,14 +68,14 @@ TASK-054 — Requirement/responsibility changes (depends on TASK-052). Then TASK
 - Companion IPC (companion-side handlers for job.list, job.get return NOT_IMPLEMENTED)
 - Database encryption
 - Browser adapters
-- Diff engine advanced stages (requirement changes TASK-054, change ranking TASK-055)
+- Diff engine advanced stage (change ranking TASK-055)
 - Remaining UI (comparison view TASK-063, change highlighting TASK-064, keyword view TASK-065)
 
 ## Test execution note
 
 Rust tests are executed in WSL (Ubuntu) via `cargo test` because Windows Smart App
-Control blocks execution of freshly compiled unsigned binaries on the host. All 228
-companion tests pass (202 prior phases plus 26 diff-engine tests from TASK-051/052/053).
+Control blocks execution of freshly compiled unsigned binaries on the host. All 239
+companion tests pass (202 prior phases plus 37 diff-engine tests from TASK-051/052/053/054).
 
 ## Known security concerns
 
@@ -84,4 +85,4 @@ surface has been added.
 
 ## Last updated
 
-TASK-053: Moved/reordered detection implemented; 228 companion tests passing via WSL.
+TASK-054: Requirement/responsibility change detection implemented; 239 companion tests passing via WSL.

@@ -687,9 +687,28 @@ Acceptance criteria:
 
 ## TASK-054 — Requirement/responsibility changes
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-052
+Dependencies: TASK-052 (DONE)
+
+Goal:
+
+Detect and classify changes specifically in a job's requirements and responsibilities sections between two snapshots.
+
+Acceptance criteria:
+
+- [x] Diff a requirements section independently (`diff_requirements`)
+- [x] Diff a responsibilities section independently (`diff_responsibilities`)
+- [x] Detect added requirements/responsibilities
+- [x] Detect removed requirements/responsibilities
+- [x] Detect modified requirements/responsibilities via similarity pairing
+- [x] Handle `Option<&str>` (missing section means empty)
+- [x] Segment requirement/responsibility text as bullets, falling back to paragraphs for prose
+- [x] `diff_requirement_sections` reports added/removed counts for both sections plus full diffs
+- [x] Normalization (case/punctuation) ignored for comparison
+- [x] No LLM, no network access, no new external dependencies
+- [x] Tests for added/removed/modified, combined counts, empty/missing, prose fallback, normalization tolerance
+- [x] All tests pass (239 passed, 0 failed; run via WSL)
 
 ## TASK-055 — Change ranking
 

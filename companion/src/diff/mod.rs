@@ -27,6 +27,16 @@ pub struct DiffResult {
     pub unchanged_count: usize,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct SectionChanges {
+    pub requirements: DiffResult,
+    pub responsibilities: DiffResult,
+    pub added_requirements: usize,
+    pub removed_requirements: usize,
+    pub added_responsibilities: usize,
+    pub removed_responsibilities: usize,
+}
+
 pub struct TextDiffEngine {
     similarity_threshold: f64,
 }
@@ -212,6 +222,77 @@ impl TextDiffEngine {
             new_segments,
             self.similarity_threshold,
         )
+    }
+
+    /// Segments a requirement/responsibility section into comparable items. Prefers
+    /// bulleted-list segmentation, falling back to paragraphs for prose blocks.
+    pub fn segment_section(text: &str) -> Vec<String> {
+        let bullets = Self::split_bullets(text);
+        if !bullets.is_empty() {
+            bullets
+        } else {
+            Self::split_paragraphs(text)
+        }
+    }
+
+    pub fn diff_requirements(&self, old: Option<&str>, new: Option<&str>) -> DiffResult {
+        let old = old.unwrap_or("");
+        let new = new.unwrap_or("");
+        self.diff_segments_reordered(
+            &Self::segment_section(old),
+            &Self::segment_section(new),
+        )
+    }
+
+    pub fn diff_responsibilities(&self, old: Option<&str>, new: Option<&str>) -> DiffResult {
+        let old = old.unwrap_or("");
+        let new = new.unwrap_or("");
+        self.diff_segments_reordered(
+            &Self::segment_section(old),
+            &Self::segment_section(new),
+        )
+    }
+
+    pub fn diff_requirement_sections(
+        &self,
+        old_requirements: Option<&str>,
+        old_responsibilities: Option<&str>,
+        new_requirements: Option<&str>,
+        new_responsibilities: Option<&str>,
+    ) -> SectionChanges {
+        let requirements = self.diff_requirements(old_requirements, new_requirements);
+        let responsibilities =
+            self.diff_responsibilities(old_responsibilities, new_responsibilities);
+
+        let added_requirements = requirements
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Added)
+            .count();
+        let removed_requirements = requirements
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Removed)
+            .count();
+        let added_responsibilities = responsibilities
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Added)
+            .count();
+        let removed_responsibilities = responsibilities
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Removed)
+            .count();
+
+        SectionChanges {
+            requirements,
+            responsibilities,
+            added_requirements,
+            removed_requirements,
+            added_responsibilities,
+            removed_responsibilities,
+        }
     }
 
     pub fn similarity(a_normalized: &str, b_normalized: &str) -> f64 {
@@ -1241,5 +1322,150 @@ mod tests {
         let first = engine.diff_segments_reordered(&old, &new);
         let second = engine.diff_segments_reordered(&old, &new);
         assert_eq!(first, second);
+    }
+
+    #[test]
+    fn segment_section_prefers_bullets() {
+        let result = TextDiffEngine::segment_section("- One\n- Two");
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0], "One");
+    }
+
+    #[test]
+    fn segment_section_falls_back_to_paragraphs() {
+        let result = TextDiffEngine::segment_section("A prose requirement line.\n\nAnother paragraph.");
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn segment_section_empty() {
+        assert!(TextDiffEngine::segment_section("").is_empty());
+    }
+
+    #[test]
+    fn diff_requirements_detects_added() {
+        let engine = TextDiffEngine::new();
+        let old = Some("- 5+ years in Rust");
+        let new = Some("- 5+ years in Rust\n- Experience with SQLite");
+        let result = engine.diff_requirements(old, new);
+        let added: Vec<_> = result
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Added)
+            .collect();
+        assert_eq!(added.len(), 1);
+        assert_eq!(added[0].content, "Experience with SQLite");
+    }
+
+    #[test]
+    fn diff_requirements_detects_removed() {
+        let engine = TextDiffEngine::new();
+        let old = Some("- 5+ years in Rust\n- A drivers license");
+        let new = Some("- 5+ years in Rust");
+        let result = engine.diff_requirements(old, new);
+        let removed: Vec<_> = result
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Removed)
+            .collect();
+        assert_eq!(removed.len(), 1);
+        assert_eq!(removed[0].content, "A drivers license");
+    }
+
+    #[test]
+    fn diff_requirements_detects_modified() {
+        let engine = TextDiffEngine::new();
+        let old = Some("- 5+ years of Rust experience");
+        let new = Some("- 7+ years of Rust experience required");
+        let result = engine.diff_requirements(old, new);
+        let modified: Vec<_> = result
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Modified)
+            .collect();
+        assert_eq!(modified.len(), 1);
+        assert_eq!(
+            modified[0].previous_content.as_deref(),
+            Some("5+ years of Rust experience")
+        );
+    }
+
+    #[test]
+    fn diff_responsibilities_detects_added_and_removed() {
+        let engine = TextDiffEngine::new();
+        let old = Some("- Build features\n- Write tests\n- Remove this one");
+        let new = Some("- Build features\n- Write tests\n- Lead code reviews");
+        let result = engine.diff_responsibilities(old, new);
+        let added: Vec<_> = result
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Added)
+            .collect();
+        let removed: Vec<_> = result
+            .changes
+            .iter()
+            .filter(|c| c.change_type == ChangeType::Removed)
+            .collect();
+        assert_eq!(added.len(), 1);
+        assert_eq!(added[0].content, "Lead code reviews");
+        assert_eq!(removed.len(), 1);
+        assert_eq!(removed[0].content, "Remove this one");
+    }
+
+    #[test]
+    fn diff_requirements_none_means_empty() {
+        let engine = TextDiffEngine::new();
+        let result = engine.diff_requirements(None, Some("- New requirement"));
+        assert_eq!(result.changes.len(), 1);
+        assert_eq!(result.changes[0].change_type, ChangeType::Added);
+    }
+
+    #[test]
+    fn diff_requirement_sections_combines_counts() {
+        let engine = TextDiffEngine::new();
+        let old_reqs = "- Rust experience";
+        let old_resp = "- Ship features\n- Cut this responsibility";
+        let new_reqs = "- Rust experience\n- Strong SQL";
+        let new_resp = "- Ship features";
+
+        let result = engine.diff_requirement_sections(
+            Some(old_reqs),
+            Some(old_resp),
+            Some(new_reqs),
+            Some(new_resp),
+        );
+        assert_eq!(result.added_requirements, 1);
+        assert_eq!(result.removed_requirements, 0);
+        assert_eq!(result.added_responsibilities, 0);
+        assert_eq!(result.removed_responsibilities, 1);
+        assert_eq!(result.requirements.changes.len(), 1);
+        assert_eq!(result.responsibilities.changes.len(), 1);
+    }
+
+    #[test]
+    fn diff_requirement_sections_identical() {
+        let engine = TextDiffEngine::new();
+        let reqs = "- Rust experience";
+        let resp = "- Ship features";
+        let result = engine.diff_requirement_sections(
+            Some(reqs),
+            Some(resp),
+            Some(reqs),
+            Some(resp),
+        );
+        assert_eq!(result.added_requirements, 0);
+        assert_eq!(result.removed_requirements, 0);
+        assert_eq!(result.added_responsibilities, 0);
+        assert_eq!(result.removed_responsibilities, 0);
+    }
+
+    #[test]
+    fn diff_requirement_sections_normalization_tolerant() {
+        let engine = TextDiffEngine::new();
+        let old = Some("- FLUENT in Rust.");
+        let new = Some("- fluent in rust.");
+        let result = engine.diff_requirements(old, new);
+        assert!(result.changes.is_empty());
+        assert_eq!(result.unchanged_count, 1);
     }
 }

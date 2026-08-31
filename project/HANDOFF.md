@@ -9,8 +9,8 @@ Date:
 2026-08-31
 
 Tasks:
-TASK-051 (DONE, PR #19 open), TASK-052 (DONE, PR #20 open), TASK-053 (DONE, branch task/TASK-053).
-TASK-060/061/062 (merged to main).
+TASK-051 (DONE, PR #19 open), TASK-052 (DONE, PR #20 open), TASK-053 (DONE, PR #21 open),
+TASK-054 (DONE, branch task/TASK-054). TASK-060/061/062 (merged to main).
 
 ## What has been done
 
@@ -57,6 +57,21 @@ TASK-060/061/062 (merged to main).
   rotation, addition+move, pure addition (no false move), normalization tolerance,
   modification+removal, determinism.
 
+### TASK-054 (branch task/TASK-054 — requirement/responsibility changes)
+
+- Added section-level diffing for a job's requirements and responsibilities.
+- `segment_section`: segments a section string as bullets, falling back to
+  paragraphs for prose blocks.
+- `diff_requirements(old, new)` and `diff_responsibilities(old, new)` accept
+  `Option<&str>` (missing = empty) and reuse the move/reorder-aware
+  `diff_segments_reordered` machinery, so Added/Removed/Modified/Moved carry over.
+- `diff_requirement_sections(...)` returns a `SectionChanges` struct with the full
+  diff for each section plus `added/removed_requirements` and
+  `added/removed_responsibilities` counts.
+- Wrote 11 new tests: segmentation (bullets/paragraphs/empty), added/removed/modified
+  requirements, responsibilities add+remove, missing->added, combined counts, identical,
+  normalization tolerance.
+
 ## Test execution workaround (important)
 
 Windows Smart App Control blocks executing freshly compiled unsigned binaries on the
@@ -73,8 +88,9 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
 
 ## What works
 
-- TASK-051 paragraph/sentence diff, TASK-052 bullet diff, and TASK-053
-  moved/reordered detection: verified by 228 passing Rust tests via WSL.
+- TASK-051 paragraph/sentence diff, TASK-052 bullet diff, TASK-053 moved/reordered
+  detection, and TASK-054 requirement/responsibility changes: verified by 239 passing
+  Rust tests via WSL.
 - Extension UI merged through TASK-062 (job list, job detail, snapshot history/detail),
   verified by 86 extension tests.
 
@@ -86,14 +102,14 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
 
 ## Tests run
 
-- Rust: 228 passed, 0 failed (`cargo test` via WSL Ubuntu).
+- Rust: 239 passed, 0 failed (`cargo test` via WSL Ubuntu).
 - Extension: typecheck + vitest (86 passed) + tsc build (as of TASK-062).
 
-## Files changed (task/TASK-053)
+## Files changed (task/TASK-054)
 
-- companion/src/diff/mod.rs (ChangeType::Moved, reordered_changes pipeline,
-  diff_segments_reordered, diff_bullets_reordered, reorder tests)
-- project/TASKS.md (TASK-053 criteria, marked DONE)
+- companion/src/diff/mod.rs (SectionChanges, segment_section, diff_requirements,
+  diff_responsibilities, diff_requirement_sections, section tests)
+- project/TASKS.md (TASK-054 criteria, marked DONE)
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
 
@@ -119,6 +135,9 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
   only genuinely unmatched content becomes Added/Removed/Modified. LCS anchors keep
   in-order identical items as unchanged, so a full swap is reported as
   unchanged+move(s) rather than removed+added.
+- TASK-054 treats requirements and responsibilities as independent "sections", each
+  diffed with the move/reorder-aware machinery, and reports added/removed counts per
+  section so the UI can surface "3 new requirements" at a glance.
 
 ## Known risks
 
@@ -126,24 +145,23 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
   "moved" — this is an inherent ambiguity of reorder detection and is deterministic,
   but downstream UI should not assume one "correct" canonical alignment.
 - Diff quality for real-world bullet prose is unverified against sanitized fixtures yet.
-- TASK-051/052/053 branches are stacked; merging order matters. Merge TASK-051 (#19),
-  TASK-052 (#20), then TASK-053.
+- TASK-051/052/053/054 branches are stacked; merging order matters. Merge TASK-051
+  (#19), TASK-052 (#20), then TASK-053 (#21), then TASK-054.
 
 ## Next recommended action
 
-1. Merge PRs for TASK-051 (#19), TASK-052 (#20), and TASK-053 in order.
-2. Continue with TASK-054 — Requirement/responsibility changes (depends on TASK-052).
-   Define acceptance criteria and implement in `companion/src/diff/mod.rs`.
-3. Then TASK-055 (change ranking).
+1. Merge PRs for TASK-051 (#19), TASK-052 (#20), TASK-053 (#21), and TASK-054 in order.
+2. Continue with TASK-055 — Change ranking (depends on TASK-054). Define acceptance
+   criteria and implement in `companion/src/diff/mod.rs`.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
 2. Run Rust tests via WSL Ubuntu (see workaround above); do not attempt to run
    freshly compiled Rust binaries directly on the Windows host.
-3. For the next Rust diff task (TASK-054), branch off `main` after TASK-051/#19,
-   TASK-052/#20, and TASK-053 merge, or merge origin/main into a stacked branch and
-   resolve doc conflicts.
+3. For the next Rust diff task (TASK-055), branch off `main` after TASK-051/#19,
+   TASK-052/#20, TASK-053/#21, and TASK-054 merge, or merge origin/main into a stacked
+   branch and resolve doc conflicts.
 
 ## Blockers
 
