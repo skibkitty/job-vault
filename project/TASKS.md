@@ -640,9 +640,27 @@ Acceptance criteria:
 
 ## TASK-052 — Bullet diff
 
-Status: BACKLOG
+Status: IN_PROGRESS
 Priority: P0
-Dependencies: TASK-050
+Dependencies: TASK-050 (DONE), TASK-051 (DONE)
+
+Goal:
+
+Implement deterministic diffing of bulleted list items in job descriptions (requirements, responsibilities).
+
+Acceptance criteria:
+
+- [ ] Split bulleted lists into individual bullet segments (dash, star, bullet char, numbered markers)
+- [ ] Detect added bullets
+- [ ] Detect removed bullets
+- [ ] Detect modified bullets via similarity-threshold pairing
+- [ ] Continuation lines (wrapped text) are appended to the owning bullet
+- [ ] Comparison uses TASK-050 normalization
+- [ ] Original un-normalized bullet text preserved in results for display
+- [ ] Fully deterministic: identical inputs produce identical output
+- [ ] No LLM, no network access, no new external dependencies
+- [ ] Tests for splitting, add/remove/modify classification, continuation lines, normalization tolerance, and determinism
+- [ ] All tests pass
 
 ## TASK-053 — Moved/reordered detection
 

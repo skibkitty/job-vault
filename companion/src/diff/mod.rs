@@ -117,6 +117,83 @@ impl TextDiffEngine {
         sentences
     }
 
+    pub fn split_bullets(text: &str) -> Vec<String> {
+        let normalized = TextNormalizer::normalize_line_breaks(text);
+        let mut bullets = Vec::new();
+        let mut current: Option<String> = None;
+
+        for line in normalized.lines() {
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                if let Some(c) = current.take() {
+                    bullets.push(c);
+                }
+                continue;
+            }
+
+            if Self::is_bullet_marker(trimmed) {
+                if let Some(c) = current.take() {
+                    bullets.push(c);
+                }
+                let body = Self::bullet_body(trimmed);
+                current = Some(body);
+            } else if let Some(c) = current.as_mut() {
+                c.push(' ');
+                c.push_str(trimmed);
+            }
+        }
+
+        if let Some(c) = current.take() {
+            let trimmed = c.trim().to_string();
+            if !trimmed.is_empty() {
+                bullets.push(trimmed);
+            }
+        }
+
+        bullets
+    }
+
+    fn is_bullet_marker(line: &str) -> bool {
+        let trimmed = line.trim_start();
+        let mut chars = trimmed.chars();
+
+        match chars.next() {
+            Some('-') | Some('*') | Some('•') | Some('·') => true,
+            Some(c) if c.is_ascii_digit() => {
+                let mut rest = trimmed.trim_start_matches(|ch: char| ch.is_ascii_digit());
+                if let Some(first) = rest.chars().next() {
+                    first == '.' || first == ')' || first == ']'
+                } else {
+                    false
+                }
+            }
+            _ => false,
+        }
+    }
+
+    fn bullet_body(line: &str) -> String {
+        let trimmed = line.trim_start();
+        match trimmed.chars().next() {
+            Some(first) if matches!(first, '-' | '*' | '•' | '·') => {
+                let body = trimmed[first.len_utf8()..].trim_start().to_string();
+                return body;
+            }
+            _ => {}
+        }
+
+        let mut rest = trimmed.trim_start_matches(|ch: char| ch.is_ascii_digit());
+        if let Some(first) = rest.chars().next() {
+            if first == '.' || first == ')' || first == ']' {
+                rest = &rest[first.len_utf8()..];
+            }
+        }
+        rest.trim().to_string()
+    }
+
+    pub fn diff_bullets(&self, old_text: &str, new_text: &str) -> DiffResult {
+        self.diff_segments(&Self::split_bullets(old_text), &Self::split_bullets(new_text))
+    }
+
     pub fn similarity(a_normalized: &str, b_normalized: &str) -> f64 {
         let a_tokens: HashSet<&str> = a_normalized
             .split_whitespace()
@@ -606,5 +683,166 @@ mod tests {
             .changes
             .iter()
             .any(|c| c.change_type == ChangeType::Modified));
+    }
+
+    #[test]
+    fn split_bullets_dash_marker() {
+        let result = TextDiffEngine::split_bullets("- First item\n- Second item\n- Third item");
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0], "First item");
+        assert_eq!(result[1], "Second item");
+        assert_eq!(result[2], "Third item");
+    }
+
+    #[test]
+    fn split_bullets_star_and_bullet_char() {
+        let star = TextDiffEngine::split_bullets("* Alpha\n* Beta");
+        assert_eq!(star, vec!["Alpha".to_string(), "Beta".to_string()]);
+        let bullet = TextDiffEngine::split_bullets("• Alpha\n• Beta");
+        assert_eq!(bullet, vec!["Alpha".to_string(), "Beta".to_string()]);
+    }
+
+    #[test]
+    fn split_bullets_numbered_markers() {
+        let dotted = TextDiffEngine::split_bullets("1. One\n2. Two\n3. Three");
+        assert_eq!(dotted, vec!["One".to_string(), "Two".to_string(), "Three".to_string()]);
+        let paren = TextDiffEngine::split_bullets("1) One\n2) Two");
+        assert_eq!(paren, vec!["One".to_string(), "Two".to_string()]);
+    }
+
+    #[test]
+    fn split_bullets_continuation_lines_append() {
+        let result = TextDiffEngine::split_bullets("- First item that wraps\n  onto a second line\n- Second item");
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0], "First item that wraps onto a second line");
+        assert_eq!(result[1], "Second item");
+    }
+
+    #[test]
+    fn split_bullets_ignores_blank_separators() {
+        let result = TextDiffEngine::split_bullets("- One\n\n- Two\n\n- Three");
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0], "One");
+    }
+
+    #[test]
+    fn split_bullets_no_bullets_returns_empty() {
+        assert!(TextDiffEngine::split_bullets("Just a plain paragraph.").is_empty());
+        assert!(TextDiffEngine::split_bullets("").is_empty());
+    }
+
+    #[test]
+    fn split_bullets_mixed_with_prose_only_returns_bullet_blocks() {
+        let text = "Intro line.\n- Bullet one\n- Bullet two";
+        let result = TextDiffEngine::split_bullets(text);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0], "Bullet one");
+    }
+
+    #[test]
+    fn split_bullets_trims_marker_whitespace() {
+        let result = TextDiffEngine::split_bullets("-  padded item   ");
+        assert_eq!(result, vec!["padded item".to_string()]);
+    }
+
+    #[test]
+    fn diff_bullet_added_detected() {
+        let engine = TextDiffEngine::new();
+        let old = "- Alpha\n- Beta";
+        let new = "- Alpha\n- Beta\n- Gamma";
+        let result = engine.diff_bullets(old, new);
+        assert_eq!(result.changes.len(), 1);
+        assert_eq!(result.changes[0].change_type, ChangeType::Added);
+        assert_eq!(result.changes[0].content, "Gamma");
+        assert_eq!(result.changes[0].new_index, Some(2));
+        assert_eq!(result.unchanged_count, 2);
+    }
+
+    #[test]
+    fn diff_bullet_removed_detected() {
+        let engine = TextDiffEngine::new();
+        let old = "- Alpha\n- Beta\n- Gamma";
+        let new = "- Alpha\n- Gamma";
+        let result = engine.diff_bullets(old, new);
+        assert_eq!(result.changes.len(), 1);
+        assert_eq!(result.changes[0].change_type, ChangeType::Removed);
+        assert_eq!(result.changes[0].content, "Beta");
+        assert_eq!(result.changes[0].old_index, Some(1));
+    }
+
+    #[test]
+    fn diff_bullet_modified_detected() {
+        let engine = TextDiffEngine::new();
+        let old = "- Build the CI pipeline.\n- Write docs.";
+        let new = "- Build and maintain the CI pipeline.\n- Write docs.";
+        let result = engine.diff_bullets(old, new);
+        assert_eq!(result.changes.len(), 1);
+        assert_eq!(result.changes[0].change_type, ChangeType::Modified);
+        assert_eq!(
+            result.changes[0].previous_content.as_deref(),
+            Some("Build the CI pipeline.")
+        );
+        assert_eq!(
+            result.changes[0].content,
+            "Build and maintain the CI pipeline."
+        );
+        assert_eq!(result.unchanged_count, 1);
+    }
+
+    #[test]
+    fn diff_bullet_identical_has_no_changes() {
+        let engine = TextDiffEngine::new();
+        let text = "- Alpha\n- Beta\n- Gamma";
+        let result = engine.diff_bullets(text, text);
+        assert!(result.changes.is_empty());
+        assert_eq!(result.unchanged_count, 3);
+    }
+
+    #[test]
+    fn diff_bullets_normalization_ignored() {
+        let engine = TextDiffEngine::new();
+        let old = "- Fluent in Rust.";
+        let new = "- fluent in rust.";
+        let result = engine.diff_bullets(old, new);
+        assert!(result.changes.is_empty());
+        assert_eq!(result.unchanged_count, 1);
+    }
+
+    #[test]
+    fn diff_bullets_empty_inputs() {
+        let engine = TextDiffEngine::new();
+        let result = engine.diff_bullets("", "");
+        assert!(result.changes.is_empty());
+        assert_eq!(result.unchanged_count, 0);
+    }
+
+    #[test]
+    fn diff_bullets_mixed_add_remove_modify() {
+        let engine = TextDiffEngine::new();
+        let old = "- Keep alpha\n- Mnemonics removed oris\n- Change this line please";
+        let new = "- Keep alpha\n- New line introduced here\n- Change this impactful line please";
+        let result = engine.diff_bullets(old, new);
+        assert!(result
+            .changes
+            .iter()
+            .any(|c| c.change_type == ChangeType::Added));
+        assert!(result
+            .changes
+            .iter()
+            .any(|c| c.change_type == ChangeType::Removed));
+        assert!(result
+            .changes
+            .iter()
+            .any(|c| c.change_type == ChangeType::Modified));
+    }
+
+    #[test]
+    fn diff_bullets_is_deterministic() {
+        let engine = TextDiffEngine::new();
+        let old = "- Alpha\n- Beta\n- Gamma";
+        let new = "- Gamma\n- Alpha\n- Delta";
+        let first = engine.diff_bullets(old, new);
+        let second = engine.diff_bullets(old, new);
+        assert_eq!(first, second);
     }
 }
