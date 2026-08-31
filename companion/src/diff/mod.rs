@@ -91,10 +91,14 @@ impl TextDiffEngine {
                     }
                 }
 
-                match chars.peek() {
-                    None => {}
-                    Some(&next) if next.is_whitespace() => {}
-                    Some(_) => continue,
+                let mut probe = chars.clone();
+                let is_boundary = match probe.find(|c| !c.is_whitespace()) {
+                    Some(next) => next.is_uppercase(),
+                    None => true,
+                };
+
+                if !is_boundary {
+                    continue;
                 }
 
                 let trimmed = current.trim().to_string();
@@ -114,21 +118,31 @@ impl TextDiffEngine {
     }
 
     pub fn similarity(a_normalized: &str, b_normalized: &str) -> f64 {
-        let a_tokens: HashSet<&str> = a_normalized.split_whitespace().collect();
-        let b_tokens: HashSet<&str> = b_normalized.split_whitespace().collect();
+        let a_tokens: HashSet<&str> = a_normalized
+            .split_whitespace()
+            .map(|t| t.trim_matches(|c: char| !c.is_alphanumeric()))
+            .filter(|t| !t.is_empty())
+            .collect();
+        let b_tokens: HashSet<&str> = b_normalized
+            .split_whitespace()
+            .map(|t| t.trim_matches(|c: char| !c.is_alphanumeric()))
+            .filter(|t| !t.is_empty())
+            .collect();
 
         if a_tokens.is_empty() && b_tokens.is_empty() {
             return 1.0;
         }
 
         let intersection = a_tokens.intersection(&b_tokens).count();
-        let union = a_tokens.union(&b_tokens).count();
 
-        if union == 0 {
+        let a_count = a_tokens.len();
+        let b_count = b_tokens.len();
+
+        if a_count + b_count == 0 {
             return 1.0;
         }
 
-        intersection as f64 / union as f64
+        2.0 * intersection as f64 / (a_count + b_count) as f64
     }
 
     pub fn diff_paragraphs(&self, old_text: &str, new_text: &str) -> DiffResult {
@@ -140,7 +154,7 @@ impl TextDiffEngine {
     }
 
     pub fn diff_texts(&self, old_text: &str, new_text: &str) -> DiffResult {
-        self.diff_paragraphs(old_text, new_text)
+        self.diff_sentences(old_text, new_text)
     }
 
     pub fn diff_segments(&self, old_segments: &[String], new_segments: &[String]) -> DiffResult {
@@ -220,52 +234,53 @@ impl TextDiffEngine {
         threshold: f64,
         changes: &mut Vec<SegmentChange>,
     ) {
-        let mut r = 0usize;
-        let mut a = 0usize;
+        let mut matched = vec![false; added.len()];
 
-        while r < removed.len() && a < added.len() {
-            if Self::similarity(&removed[r].normalized, &added[a].normalized) >= threshold {
-                changes.push(SegmentChange {
-                    change_type: ChangeType::Modified,
-                    content: added[a].text.clone(),
-                    previous_content: Some(removed[r].text.clone()),
-                    old_index: Some(removed[r].index),
-                    new_index: Some(added[a].index),
-                });
-                r += 1;
-                a += 1;
-            } else {
-                changes.push(SegmentChange {
-                    change_type: ChangeType::Removed,
-                    content: removed[r].text.clone(),
-                    previous_content: None,
-                    old_index: Some(removed[r].index),
-                    new_index: None,
-                });
-                r += 1;
+        for r in removed {
+            let mut best: Option<(usize, f64)> = None;
+            for (a_index, a) in added.iter().enumerate() {
+                if matched[a_index] {
+                    continue;
+                }
+                let score = Self::similarity(&r.normalized, &a.normalized);
+                if score >= threshold && best.map_or(true, |(_, s)| score > s) {
+                    best = Some((a_index, score));
+                }
+            }
+
+            match best {
+                Some((a_index, _)) => {
+                    matched[a_index] = true;
+                    changes.push(SegmentChange {
+                        change_type: ChangeType::Modified,
+                        content: added[a_index].text.clone(),
+                        previous_content: Some(r.text.clone()),
+                        old_index: Some(r.index),
+                        new_index: Some(added[a_index].index),
+                    });
+                }
+                None => {
+                    changes.push(SegmentChange {
+                        change_type: ChangeType::Removed,
+                        content: r.text.clone(),
+                        previous_content: None,
+                        old_index: Some(r.index),
+                        new_index: None,
+                    });
+                }
             }
         }
 
-        while r < removed.len() {
-            changes.push(SegmentChange {
-                change_type: ChangeType::Removed,
-                content: removed[r].text.clone(),
-                previous_content: None,
-                old_index: Some(removed[r].index),
-                new_index: None,
-            });
-            r += 1;
-        }
-
-        while a < added.len() {
-            changes.push(SegmentChange {
-                change_type: ChangeType::Added,
-                content: added[a].text.clone(),
-                previous_content: None,
-                old_index: None,
-                new_index: Some(added[a].index),
-            });
-            a += 1;
+        for (a_index, a) in added.iter().enumerate() {
+            if !matched[a_index] {
+                changes.push(SegmentChange {
+                    change_type: ChangeType::Added,
+                    content: a.text.clone(),
+                    previous_content: None,
+                    old_index: None,
+                    new_index: Some(a.index),
+                });
+            }
         }
     }
 
