@@ -10,17 +10,15 @@ IN_PROGRESS
 
 ## Current phase
 
-Phase 3 — Browser integration
+Phase 5 — Diff engine (core deterministic diffing); extension UI merged through TASK-062
 
 ## Current task
 
-TASK-051 (BLOCKED)
+TASK-052 (DONE) — Bullet diff; PR for TASK-051 open (#19)
 
 ## Recommended next action
 
-Resolve Windows Smart App Control blocking local build output (human decision), then
-run `cargo test` on branch `task/TASK-051` to finish TASK-051. Alternative non-blocked
-work: extension-side tasks (e.g. TASK-060) do not depend on executing Rust test binaries.
+TASK-053 — Moved/reordered detection (depends on TASK-052). Then TASK-054 (requirement/responsibility changes) and TASK-055 (change ranking).
 
 ## Completed
 
@@ -57,30 +55,32 @@ work: extension-side tasks (e.g. TASK-060) do not depend on executing Rust test 
 - URL/canonical matching implemented (TASK-040).
 - Job fingerprinting implemented (TASK-041).
 - Text normalization implemented (TASK-050).
+- Paragraph/sentence diff engine implemented (TASK-051).
+- Bullet diff engine implemented (TASK-052).
+- Popup job list with IPC fetch, safe rendering, filtering, and states implemented (TASK-060).
+- Popup job detail view with IPC fetch, safe rendering, and back navigation implemented (TASK-061).
+- Snapshot history UI with clickable snapshots, snapshot detail view, and back-to-job navigation implemented (TASK-062).
 
 ## Not yet implemented
 
-- Extension
-- Companion IPC
+- Companion IPC (companion-side handlers for job.list, job.get return NOT_IMPLEMENTED)
 - Database encryption
 - Browser adapters
-- Diff engine (paragraph/sentence diff code written but tests not executed; bullet diff, moved/reordered detection, change ranking pending)
-- UI
+- Diff engine advanced stages (moved/reordered detection TASK-053, requirement changes TASK-054, change ranking TASK-055)
+- Remaining UI (comparison view TASK-063, change highlighting TASK-064, keyword view TASK-065)
 
-## Known blockers
+## Test execution note
 
-Windows Smart App Control is On and blocks execution of freshly compiled unsigned
-binaries (os error 4551). `cargo test` cannot run any newly built test harness or build
-script. Code compiles (`cargo check`/`cargo build` succeed because existing cached
-artifacts are reused). Unblocking requires a human to turn off Smart App Control
-(Settings > Privacy & security > Windows Security > App & browser control) — note this
-is permanent until Windows is reinstalled — or otherwise permit local build output.
-Rust tasks cannot be verified until resolved.
+Rust tests are executed in WSL (Ubuntu) via `cargo test` because Windows Smart App
+Control blocks execution of freshly compiled unsigned binaries on the host. All 218
+companion tests pass (202 from prior phases plus 16 bullet-diff tests from TASK-052).
 
 ## Known security concerns
 
-No implementation exists yet. Security design must be completed before sensitive storage is implemented.
+Vault crypto design is finalized (ADR-005) and vault code compiles, but runtime
+verification on the host remains blocked by Smart App Control. No telemetry/network
+surface has been added.
 
 ## Last updated
 
-TASK-051: Paragraph/sentence diff implemented; BLOCKED — Windows Smart App Control prevents executing Rust test binaries.
+TASK-052: Bullet diff implemented; 218 companion tests passing via WSL.

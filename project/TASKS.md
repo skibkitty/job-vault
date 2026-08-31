@@ -640,7 +640,7 @@ Acceptance criteria:
 
 ## TASK-052 — Bullet diff
 
-Status: IN_PROGRESS
+Status: DONE
 Priority: P0
 Dependencies: TASK-050 (DONE), TASK-051 (DONE)
 
@@ -650,17 +650,17 @@ Implement deterministic diffing of bulleted list items in job descriptions (requ
 
 Acceptance criteria:
 
-- [ ] Split bulleted lists into individual bullet segments (dash, star, bullet char, numbered markers)
-- [ ] Detect added bullets
-- [ ] Detect removed bullets
-- [ ] Detect modified bullets via similarity-threshold pairing
-- [ ] Continuation lines (wrapped text) are appended to the owning bullet
-- [ ] Comparison uses TASK-050 normalization
-- [ ] Original un-normalized bullet text preserved in results for display
-- [ ] Fully deterministic: identical inputs produce identical output
-- [ ] No LLM, no network access, no new external dependencies
-- [ ] Tests for splitting, add/remove/modify classification, continuation lines, normalization tolerance, and determinism
-- [ ] All tests pass
+- [x] Split bulleted lists into individual bullet segments (dash, star, bullet char, numbered markers)
+- [x] Detect added bullets
+- [x] Detect removed bullets
+- [x] Detect modified bullets via similarity-threshold pairing
+- [x] Continuation lines (wrapped text) are appended to the owning bullet
+- [x] Comparison uses TASK-050 normalization
+- [x] Original un-normalized bullet text preserved in results for display
+- [x] Fully deterministic: identical inputs produce identical output
+- [x] No LLM, no network access, no new external dependencies
+- [x] Tests for splitting, add/remove/modify classification, continuation lines, normalization tolerance, and determinism
+- [x] All tests pass (218 passed, 0 failed; run via WSL)
 
 ## TASK-053 — Moved/reordered detection
 
@@ -686,21 +686,72 @@ Dependencies: TASK-054
 
 ## TASK-060 — Job list
 
-Status: BACKLOG
+Status: DONE
 Priority: P1
-Dependencies: TASK-022, TASK-007
+Dependencies: TASK-022 (DONE), TASK-007 (DONE)
+
+Goal:
+
+Display the user's saved jobs in the extension popup.
+
+Acceptance criteria:
+
+- [x] Popup fetches saved jobs via `job.list` IPC routed through the service worker
+- [x] Strict validation of IPC payload shape before rendering
+- [x] States handled: loading, empty, ready, vault locked, companion unavailable, not implemented, error
+- [x] Renders only safe content (no innerHTML with untrusted data; http/https URLs only)
+- [x] Client-side filter box narrows the visible list
+- [x] Deterministic ordering (newest first, title tiebreak)
+- [x] No new permissions, no network access
+- [x] Pure data/render-preparation logic separated from DOM wiring
+- [x] Tests for parsing, validation, filtering, sorting, and state resolution
+- [x] `npm run typecheck` and `npm test` pass
 
 ## TASK-061 — Job detail
 
-Status: BACKLOG
+Status: DONE
 Priority: P1
-Dependencies: TASK-060
+Dependencies: TASK-060 (DONE)
+
+Goal:
+
+Display full job details in the extension popup when a user selects a job from the list.
+
+Acceptance criteria:
+
+- [x] Clicking a job in the list requests `job.get` via IPC and shows a detail view
+- [x] Strict validation of `job.get` response payload before rendering
+- [x] States handled: loading, detail-ready, not-found, locked, unavailable, not-implemented, error
+- [x] Detail view renders: title, company, location, salary, URL, description, requirements, responsibilities
+- [x] Snapshot count and most-recent capturedAt shown when available
+- [x] Back button returns to job list
+- [x] Only safe content rendered (no innerHTML with untrusted data; http/https URLs only)
+- [x] Pure data/render-preparation logic separated from DOM wiring
+- [x] Tests for parsing, validation, state resolution, and detail rendering
+- [x] `npm run typecheck` and `npm test` pass
+- [x] No new permissions, no network access
 
 ## TASK-062 — Snapshot history UI
 
-Status: BACKLOG
+Status: DONE
 Priority: P1
-Dependencies: TASK-061, TASK-023
+Dependencies: TASK-061 (DONE), TASK-023 (DONE)
+
+Goal:
+
+Display the full snapshot history for a job in the detail view, allowing users to browse and inspect individual snapshots.
+
+Acceptance criteria:
+
+- [x] Snapshot list in detail view shows each snapshot with capturedAt, sorted newest first
+- [x] Clicking a snapshot replaces the detail content with that snapshot's full data (title, company, location, salary, URL, description, requirements, responsibilities)
+- [x] Snapshot detail includes a "Back to job" button that returns to the job detail view
+- [x] Snapshot parsing validates all snapshot fields from companion payload
+- [x] Empty snapshot list shows appropriate message
+- [x] All rendering uses createElement/textContent (no innerHTML)
+- [x] Tests for snapshot parsing, snapshot list rendering, and snapshot detail state
+- [x] `npm run typecheck` and `npm test` pass
+- [x] No new permissions, no network access
 
 ## TASK-063 — Comparison view
 
