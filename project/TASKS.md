@@ -193,7 +193,7 @@ Acceptance criteria:
 - [x] IPC module boundary exists.
 - [x] No network server is created.
 
-Note: Rust build toolchain (MSVC) required installation of Visual Studio Build Tools.
+Note: The Rust build toolchain runs in WSL (see AGENTS.md section 7b). A Windows MSVC installation was previously required for the Rust toolchain but Smart App Control blocks Windows-native build output; use WSL for all Rust build/test.
 
 ---
 

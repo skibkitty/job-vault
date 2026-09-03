@@ -6,10 +6,10 @@ Agent:
 opencode/big-pickle
 
 Date:
-2026-08-25
+2026-09-03
 
 Tasks:
-TASK-060 merged to main, TASK-061 merged to main, TASK-062 (DONE, branch task/TASK-062)
+TASK-060 merged to main, TASK-061 merged to main, TASK-062 (DONE, branch task/TASK-062); WSL dev environment established for Rust
 
 ## What has been done
 
@@ -43,12 +43,12 @@ TASK-060 merged to main, TASK-061 merged to main, TASK-062 (DONE, branch task/TA
   detail parsing with full fields, snapshot skip/invalid tests.
 - No new permissions, no network access, no new dependencies.
 
-## Blocker (unchanged)
+## Blocker (RESOLVED)
 
-Windows Smart App Control is On:
-- All Rust test execution blocked (cargo test harnesses, build scripts).
-- Extension tooling (node/vitest) unaffected.
-- Only the user can turn SAC off.
+Windows Smart App Control is On, which still blocks Windows-native Rust builds/test
+execution. However, the Rust companion is now built and tested inside WSL (Ubuntu),
+which is unaffected by Smart App Control. The Rust roadmap is therefore unblocked.
+See AGENTS.md section 7b for the exact `wsl -d Ubuntu -- bash -lic "...cargo test"` workflow.
 
 ## What works
 
@@ -58,16 +58,17 @@ Windows Smart App Control is On:
   - `npm run build` (tsc emit) — pass
 - Job list, job detail, snapshot history, and snapshot detail views all functional.
 - Navigation: list → detail → snapshot detail, with back buttons at each level.
+- Rust toolchain confirmed in WSL: cargo 1.98.0 / rustc 1.98.0 on Ubuntu.
 
 ## What does not work
 
 - Companion still returns NOT_IMPLEMENTED for job.list and job.get.
-- Rust test execution blocked by Smart App Control.
+- Windows-native Rust builds/tests still blocked by Smart App Control (use WSL instead).
 
 ## Tests run
 
-- Extension: typecheck + vitest (86 passed) + tsc build.
-- Rust: none executable (SAC).
+- Extension: typecheck + vitest (86 passed) + tsc build. (Windows)
+- Rust: not yet re-run; use the WSL workflow in AGENTS.md section 7b.
 
 ## Files changed (task/TASK-062)
 
@@ -92,29 +93,31 @@ Windows Smart App Control is On:
 
 - Companion payload shape for job.get snapshots is not finalized; UI validation
   may need adjustment when the real schema lands.
-- All Rust tasks (TASK-042, TASK-051, TASK-052+, TASK-075, TASK-076) remain
-  blocked on Smart App Control.
+- Rust build/test now runs in WSL; the Windows-native toolchain remains blocked by
+  Smart App Control, so there is no Windows fallback for cargo.
+- First WSL build is slow (dependency download + compile).
 
 ## Next recommended action
 
-1. Merge PR for task/TASK-062 after review.
-2. Remaining Phase 6 UI tasks (TASK-063 comparison view, TASK-064 change highlighting,
-   TASK-065 keyword view) are all BLOCKED on TASK-055 (change ranking, Rust).
-3. No remaining unblocked extension-side tasks with defined acceptance criteria.
-   Options:
-   - User defines a new extension-side task (e.g., IPC robustness testing TASK-074).
-   - User disables Smart App Control to unblock Rust tasks.
-   - User merges pending Rust PRs and continues the diff engine roadmap.
+1. Merge PR for task/TASK-062 if not already merged.
+2. Rust is unblocked. Implement the next READY Rust task:
+   **TASK-051 — Paragraph/sentence diff** (P0, depends on TASK-050 DONE).
+   Note: paragraph/sentence diff was previously started on branch task/TASK-051.
+3. Then continue the Rust roadmap: TASK-052 (bullet diff), TASK-053 (moved/reordered),
+   TASK-054 (requirement/responsibility), TASK-055 (change ranking), TASK-042 (similarity).
+4. Phase 6 UI (TASK-063+) depends on TASK-055 and stays BACKLOG until the diff engine
+   lands.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Check `(Get-MpComputerStatus).SmartAppControlState`.
-3. If On: all remaining extension UI tasks (TASK-063+) are blocked on Rust.
-   No unblocked extension-side tasks remain with defined acceptance criteria.
-4. If Off: finish TASK-051 first, then continue Rust roadmap.
+2. The Rust companion is built/tested in WSL per AGENTS.md section 7b. Do NOT use
+   Windows-native cargo (Smart App Control blocks it).
+3. Rust is unblocked. Pick up the next READY Rust task, starting with TASK-051.
+   Verify with `wsl -d Ubuntu -- bash -lic "cd /mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec/companion && cargo test"`.
+4. Extension tasks run normally on Windows with `npm run typecheck` / `npm test`.
 
 ## Blockers
 
-- All Phase 6 UI tasks after TASK-062: BLOCKED on TASK-055 (Rust diff engine).
-- All Rust tasks: BLOCKED on Windows Smart App Control (human action needed).
+- None blocking the Rust roadmap (WSL workflow in place).
+- Windows-native Rust builds remain blocked by Smart App Control; always use WSL.

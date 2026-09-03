@@ -38,7 +38,8 @@ All job-search data stays on the local machine. No telemetry, no cloud sync, no 
 
 ## Status
 
-Phase 0 — Foundation. See `project/TASKS.md` for current tasks.
+Phase 6 — UI. See `project/TASKS.md` for current tasks.
+The Rust companion is developed and tested inside WSL (see AGENTS.md section 7b).
 
 ## License
 

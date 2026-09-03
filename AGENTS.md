@@ -134,6 +134,44 @@ The companion owns the sensitive database.
 
 The extension must not directly manipulate the database.
 
+## 7b. Rust development environment (WSL)
+
+The Rust companion is developed and tested inside Windows Subsystem for Linux (WSL).
+This is the only supported way to build and test the companion on this machine.
+
+Why:
+
+- Windows Smart App Control is On and blocks execution of freshly compiled unsigned
+  binaries (os error 4551). It cannot be turned off without a permanent change to the
+  machine (it re-enables on Windows reinstall).
+- WSL provides a real Linux environment where Rust builds and `cargo test` run
+  untouched by Smart App Control.
+
+How to run Rust commands (from an OpenCode session on Windows):
+
+- The project lives on the Windows filesystem and is mounted in WSL at
+  `/mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec`.
+- Invoke Rust tooling through `wsl` with a login shell so `~/.cargo/bin` is on PATH:
+
+  ```text
+  wsl -d Ubuntu -- bash -lic "cd /mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec/companion && cargo test"
+  ```
+
+  Because each `wsl ... bash -lic` starts a fresh login shell, always `cd` into the
+  companion directory inside the command; do not rely on a persistent working
+  directory across calls. Use paths of the form `/mnt/c/...` for the mounted project.
+
+- The extension is developed and tested on Windows normally (node/vitest) and is
+  unaffected by WSL.
+
+Conventions:
+
+- Always build/test the Rust companion in WSL, never with the Windows `cargo`.
+- Do not shell out to Windows-native cargo; use `wsl -d Ubuntu -- bash -lic "..."`.
+- Rust state (`~/.cargo`, target dirs) lives inside the WSL filesystem and persists
+  across sessions. Wait for first-time dependency downloads/compilation; it is slow
+  on first run.
+
 ## 8. Initial technology direction
 
 Preferred:
@@ -258,6 +296,9 @@ If an architectural change is necessary, document it and ask the user when requi
 ## 15. Testing
 
 Relevant tests must be run before a task is marked DONE.
+
+- Rust tasks: run `cargo test` inside WSL (see section 7b).
+- Extension tasks: run `npm run typecheck` and `npm test` (vitest) on Windows.
 
 Prefer:
 

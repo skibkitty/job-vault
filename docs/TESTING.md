@@ -1,5 +1,25 @@
 # Testing Strategy
 
+## Running Rust tests (WSL)
+
+The Rust companion is built and tested inside WSL. Use:
+
+```text
+wsl -d Ubuntu -- bash -lic "cd /mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec/companion && cargo test"
+```
+
+Windows-native cargo does not work because Smart App Control blocks freshly compiled
+unsigned binaries. See AGENTS.md section 7b for details.
+
+## Running extension tests (Windows)
+
+```text
+cd extension
+npm run typecheck
+npm test            # vitest
+npm run build       # tsc emit
+```
+
 ## Unit tests
 
 Test:

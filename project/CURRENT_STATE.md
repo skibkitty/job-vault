@@ -10,7 +10,7 @@ IN_PROGRESS
 
 ## Current phase
 
-Phase 6 — UI (extension-side); Phase 5 diff engine blocked on Rust test execution
+Phase 6 — UI (extension-side); Phase 5 diff engine unblocked via WSL
 
 ## Current task
 
@@ -18,9 +18,10 @@ TASK-062 (DONE)
 
 ## Recommended next action
 
-TASK-063 — Comparison view (depends on TASK-055, BLOCKED on Rust diff engine).
-Next available extension-side task after TASK-063 would need new task definition.
-Rust tasks (TASK-042, TASK-051, TASK-052+) remain blocked on Smart App Control.
+Rust tasks are unblocked. Highest-priority READY Rust task:
+TASK-051 — Paragraph/sentence diff (P0, depends on TASK-050 DONE).
+Then TASK-052 (bullet diff), then TASK-042 (similarity matching).
+Phase 6 UI tasks (TASK-063+) remain blocked on Rust milestones (TASK-055).
 
 ## Completed
 
@@ -71,17 +72,17 @@ Rust tasks (TASK-042, TASK-051, TASK-052+) remain blocked on Smart App Control.
 
 ## Known blockers
 
-Windows Smart App Control is On on the development machine and blocks execution of
-freshly compiled unsigned binaries (os error 4551). Rust `cargo test` cannot run newly
-built test harnesses or build scripts; extension tooling (node/vitest) is unaffected.
-Unblocking requires a human to turn off Smart App Control (Settings > Privacy &
-security > Windows Security > App & browser control) — permanent until Windows
-reinstall — or otherwise permit local build output.
+Resolved: Windows Smart App Control previously blocked Rust build/test execution
+(os error 4551) on the Windows toolchain. The Rust companion is now built and tested
+inside WSL (Ubuntu, mounted at `/mnt/c/Users/test/Downloads/...`), which is unaffected
+by Smart App Control. See AGENTS.md section 7b for the supported Rust workflow.
+No remaining blocker on the Rust roadmap.
 
 ## Known security concerns
 
-Vault crypto design is finalized (ADR-005) and vault code compiles, but runtime
-verification is currently impossible while the Smart App Control blocker stands.
+Vault crypto design is finalized (ADR-005) and vault code compiles; runtime
+verification via `cargo test` is now possible in WSL and should be exercised when
+touching vault code.
 No telemetry/network surface has been added.
 
 ## Last updated
