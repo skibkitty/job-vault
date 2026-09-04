@@ -14,11 +14,12 @@ Phase 5 — Diff engine (core deterministic diffing); extension UI merged throug
 
 ## Current task
 
-TASK-054 (DONE) — Requirement/responsibility changes; PRs for TASK-051 (#19), TASK-052 (#20), TASK-053 (#21) open
+TASK-054 (DONE) — Requirement/responsibility changes. Diff engine (TASK-051..054) merged to main.
 
 ## Recommended next action
 
-TASK-055 — Change ranking (depends on TASK-054). Merge TASK-051 (#19), TASK-052 (#20), TASK-053 (#21), and TASK-054 PRs.
+TASK-055 — Change ranking (depends on TASK-054, now DONE). Implement in `companion/src/diff/mod.rs`,
+then continue TASK-042 (similarity matching). Phase 6 UI (TASK-063+) unblocks once TASK-055 lands.
 
 ## Completed
 

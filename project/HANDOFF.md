@@ -6,11 +6,12 @@ Agent:
 opencode/big-pickle
 
 Date:
-2026-08-31
+2026-09-04
 
 Tasks:
-TASK-051 (DONE, PR #19 open), TASK-052 (DONE, PR #20 open), TASK-053 (DONE, PR #21 open),
-TASK-054 (DONE, branch task/TASK-054). TASK-060/061/062 (merged to main).
+Diff engine TASK-051/052/053/054 merged to main. Canonical Rust workspace relocated to
+WSL at /root/job-vault; WSL dev environment documented (AGENTS.md section 7b).
+TASK-060/061/062 (extension UI) previously merged to main.
 
 ## What has been done
 
@@ -150,20 +151,42 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
 
 ## Next recommended action
 
-1. Merge PRs for TASK-051 (#19), TASK-052 (#20), TASK-053 (#21), and TASK-054 in order.
-2. Continue with TASK-055 — Change ranking (depends on TASK-054). Define acceptance
+1. TASK-051/052/053/054 diff engine is now merged to main (see session note below).
+2. Continue with TASK-055 — Change ranking (depends on TASK-054, DONE). Define acceptance
    criteria and implement in `companion/src/diff/mod.rs`.
+3. Then TASK-042 (similarity matching), then Phase 6 UI (TASK-063+ once TASK-055 lands).
+
+## Session note (opencode/big-pickle, 2026-09-04)
+
+- Established the canonical Rust dev environment in WSL and documented it in AGENTS.md
+  section 7b. The repo now lives at `/root/job-vault` inside WSL (cloned from the
+  Windows workspace), so `cargo test` runs natively in the WSL filesystem (no cross-fs
+  I/O penalty). Run with:
+  `bash -lic "cd /root/job-vault/companion && cargo test"`.
+- Merged the diff engine (TASK-051..054) into `main` (branch task/TASK-054, --no-ff).
+  All 239 companion tests pass in WSL, including the 67 diff-engine tests.
+- Note: as of cloning, WSL has no GitHub credentials (no gh, no credential helper).
+  Pushing from WSL will hang on an HTTPS auth prompt. Until WSL creds are set up
+  (gh auth login / PAT / credential helper), push/merge via the Windows workspace at
+  `/mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec`
+  where credentials already work, then `git pull` locally in WSL.
+- Scratch working copies from a prior session remain at `/root/job-vault-wip/`
+  (companion, companion-051..054) and are superseded by the merged diff engine; they
+  can be removed once TASK-055 is underway.
 
 ## Instructions for next agent
 
 1. Read AGENTS.md, project/CURRENT_STATE.md, project/HANDOFF.md, project/TASKS.md.
-2. Run Rust tests via WSL Ubuntu (see workaround above); do not attempt to run
-   freshly compiled Rust binaries directly on the Windows host.
-3. For the next Rust diff task (TASK-055), branch off `main` after TASK-051/#19,
-   TASK-052/#20, TASK-053/#21, and TASK-054 merge, or merge origin/main into a stacked
-   branch and resolve doc conflicts.
+2. The canonical Rust workspace is `/root/job-vault` inside WSL (AGENTS.md section 7b).
+   Run Rust tests with: `cd /root/job-vault/companion && cargo test`. Do not run
+   freshly compiled Rust binaries on the Windows host (Smart App Control blocks them).
+3. For the next Rust diff task (TASK-055), work in the WSL repo (`/root/job-vault`) and
+   commit there. Since WSL lacks GitHub credentials, push/merge via the Windows workspace
+   (or set up WSL creds first). Branch off `main` (diff engine now merged).
 
 ## Blockers
 
+- WSL has no GitHub push credentials yet (no gh, no credential helper) — push/merge via
+  the Windows workspace until WSL creds are configured.
 - Windows Smart App Control blocks host-side Rust test execution (mitigated via WSL).
 - Phase 6 UI tasks after TASK-062 (TASK-063+) remain blocked on TASK-055 (change ranking).
