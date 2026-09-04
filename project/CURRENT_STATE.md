@@ -10,18 +10,15 @@ IN_PROGRESS
 
 ## Current phase
 
-Phase 6 — UI (extension-side); Phase 5 diff engine unblocked via WSL
+Phase 5 — Diff engine (core deterministic diffing); extension UI merged through TASK-062
 
 ## Current task
 
-TASK-062 (DONE)
+TASK-054 (DONE) — Requirement/responsibility changes; PRs for TASK-051 (#19), TASK-052 (#20), TASK-053 (#21) open
 
 ## Recommended next action
 
-Rust tasks are unblocked. Highest-priority READY Rust task:
-TASK-051 — Paragraph/sentence diff (P0, depends on TASK-050 DONE).
-Then TASK-052 (bullet diff), then TASK-042 (similarity matching).
-Phase 6 UI tasks (TASK-063+) remain blocked on Rust milestones (TASK-055).
+TASK-055 — Change ranking (depends on TASK-054). Merge TASK-051 (#19), TASK-052 (#20), TASK-053 (#21), and TASK-054 PRs.
 
 ## Completed
 
@@ -58,6 +55,10 @@ Phase 6 UI tasks (TASK-063+) remain blocked on Rust milestones (TASK-055).
 - URL/canonical matching implemented (TASK-040).
 - Job fingerprinting implemented (TASK-041).
 - Text normalization implemented (TASK-050).
+- Paragraph/sentence diff engine implemented (TASK-051).
+- Bullet diff engine implemented (TASK-052).
+- Moved/reordered detection implemented (TASK-053).
+- Requirement/responsibility change detection implemented (TASK-054).
 - Popup job list with IPC fetch, safe rendering, filtering, and states implemented (TASK-060).
 - Popup job detail view with IPC fetch, safe rendering, and back navigation implemented (TASK-061).
 - Snapshot history UI with clickable snapshots, snapshot detail view, and back-to-job navigation implemented (TASK-062).
@@ -67,24 +68,21 @@ Phase 6 UI tasks (TASK-063+) remain blocked on Rust milestones (TASK-055).
 - Companion IPC (companion-side handlers for job.list, job.get return NOT_IMPLEMENTED)
 - Database encryption
 - Browser adapters
-- Diff engine (bullet diff, moved/reordered detection, change ranking pending; paragraph/sentence diff exists on blocked branch task/TASK-051)
-- Remaining UI (comparison view, change highlighting, keyword view)
+- Diff engine advanced stage (change ranking TASK-055)
+- Remaining UI (comparison view TASK-063, change highlighting TASK-064, keyword view TASK-065)
 
-## Known blockers
+## Test execution note
 
-Resolved: Windows Smart App Control previously blocked Rust build/test execution
-(os error 4551) on the Windows toolchain. The Rust companion is now built and tested
-inside WSL (Ubuntu, mounted at `/mnt/c/Users/test/Downloads/...`), which is unaffected
-by Smart App Control. See AGENTS.md section 7b for the supported Rust workflow.
-No remaining blocker on the Rust roadmap.
+Rust tests are executed in WSL (Ubuntu) via `cargo test` because Windows Smart App
+Control blocks execution of freshly compiled unsigned binaries on the host. All 239
+companion tests pass (202 prior phases plus 37 diff-engine tests from TASK-051/052/053/054).
 
 ## Known security concerns
 
-Vault crypto design is finalized (ADR-005) and vault code compiles; runtime
-verification via `cargo test` is now possible in WSL and should be exercised when
-touching vault code.
-No telemetry/network surface has been added.
+Vault crypto design is finalized (ADR-005) and vault code compiles, but runtime
+verification on the host remains blocked by Smart App Control. No telemetry/network
+surface has been added.
 
 ## Last updated
 
-TASK-062: Snapshot history UI implemented; 86 extension tests passing.
+TASK-054: Requirement/responsibility change detection implemented; 239 companion tests passing via WSL.

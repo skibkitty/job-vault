@@ -616,27 +616,99 @@ Acceptance criteria:
 
 ## TASK-051 — Paragraph/sentence diff
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-050
+Dependencies: TASK-050 (DONE)
+
+Goal:
+
+Implement deterministic paragraph- and sentence-level diffing of job description text.
+
+Acceptance criteria:
+
+- [x] Split text into paragraphs on blank lines
+- [x] Split text into sentences on terminal punctuation
+- [x] Detect added paragraphs/sentences
+- [x] Detect removed paragraphs/sentences
+- [x] Detect modified paragraphs/sentences via similarity-threshold pairing
+- [x] Comparison uses TASK-050 normalization (HTML stripping, lowercasing, whitespace collapsing)
+- [x] Original un-normalized segment text preserved in results for display
+- [x] Fully deterministic: identical inputs produce identical output
+- [x] No LLM, no network access, no new external dependencies
+- [x] Tests for splitting, diff classification, normalization tolerance, and determinism
+- [x] All tests pass (202 passed, 0 failed; run via WSL bypassing Smart App Control)
 
 ## TASK-052 — Bullet diff
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-050
+Dependencies: TASK-050 (DONE), TASK-051 (DONE)
+
+Goal:
+
+Implement deterministic diffing of bulleted list items in job descriptions (requirements, responsibilities).
+
+Acceptance criteria:
+
+- [x] Split bulleted lists into individual bullet segments (dash, star, bullet char, numbered markers)
+- [x] Detect added bullets
+- [x] Detect removed bullets
+- [x] Detect modified bullets via similarity-threshold pairing
+- [x] Continuation lines (wrapped text) are appended to the owning bullet
+- [x] Comparison uses TASK-050 normalization
+- [x] Original un-normalized bullet text preserved in results for display
+- [x] Fully deterministic: identical inputs produce identical output
+- [x] No LLM, no network access, no new external dependencies
+- [x] Tests for splitting, add/remove/modify classification, continuation lines, normalization tolerance, and determinism
+- [x] All tests pass (218 passed, 0 failed; run via WSL)
 
 ## TASK-053 — Moved/reordered detection
 
-Status: BACKLOG
+Status: DONE
 Priority: P1
-Dependencies: TASK-052
+Dependencies: TASK-052 (DONE)
+
+Goal:
+
+Detect when bullets/segments are moved or reordered between two snapshots rather than reported as removed-and-added.
+
+Acceptance criteria:
+
+- [x] Add a `Moved` change type distinct from Added/Removed/Modified
+- [x] Detect a single moved item (same content, changed position)
+- [x] Detect full reordering of a list without false Removed/Added pairs
+- [x] Item content matched by TASK-050 normalization (case/whitespace/punctuation tolerant)
+- [x] Works for bullets (`diff_bullets_reordered`) and generic segments (`diff_segments_reordered`)
+- [x] Modified/added/removed classification still honored when items genuinely differ
+- [x] Fully deterministic: identical inputs produce identical output
+- [x] No LLM, no network access, no new external dependencies
+- [x] Tests for swap, rotation, move-to-end, addition+move, normalization tolerance, modification+removal, and determinism
+- [x] All tests pass (228 passed, 0 failed; run via WSL)
 
 ## TASK-054 — Requirement/responsibility changes
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-052
+Dependencies: TASK-052 (DONE)
+
+Goal:
+
+Detect and classify changes specifically in a job's requirements and responsibilities sections between two snapshots.
+
+Acceptance criteria:
+
+- [x] Diff a requirements section independently (`diff_requirements`)
+- [x] Diff a responsibilities section independently (`diff_responsibilities`)
+- [x] Detect added requirements/responsibilities
+- [x] Detect removed requirements/responsibilities
+- [x] Detect modified requirements/responsibilities via similarity pairing
+- [x] Handle `Option<&str>` (missing section means empty)
+- [x] Segment requirement/responsibility text as bullets, falling back to paragraphs for prose
+- [x] `diff_requirement_sections` reports added/removed counts for both sections plus full diffs
+- [x] Normalization (case/punctuation) ignored for comparison
+- [x] No LLM, no network access, no new external dependencies
+- [x] Tests for added/removed/modified, combined counts, empty/missing, prose fallback, normalization tolerance
+- [x] All tests pass (239 passed, 0 failed; run via WSL)
 
 ## TASK-055 — Change ranking
 
