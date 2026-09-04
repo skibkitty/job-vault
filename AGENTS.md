@@ -147,30 +147,45 @@ Why:
 - WSL provides a real Linux environment where Rust builds and `cargo test` run
   untouched by Smart App Control.
 
-How to run Rust commands (from an OpenCode session on Windows):
+How to run Rust commands:
 
-- The project lives on the Windows filesystem and is mounted in WSL at
-  `/mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec`.
+- The canonical Rust workspace lives INSIDE the WSL filesystem at `/root/job-vault`
+  (project root) with the companion at `/root/job-vault/companion`. Keep the repo on
+  the WSL filesystem (not `/mnt/c/...`) to avoid slow cross-filesystem I/O.
 - Invoke Rust tooling through `wsl` with a login shell so `~/.cargo/bin` is on PATH:
 
   ```text
-  wsl -d Ubuntu -- bash -lic "cd /mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec/companion && cargo test"
+  wsl -d Ubuntu -- bash -lic "cd /root/job-vault/companion && cargo test"
   ```
 
   Because each `wsl ... bash -lic` starts a fresh login shell, always `cd` into the
   companion directory inside the command; do not rely on a persistent working
-  directory across calls. Use paths of the form `/mnt/c/...` for the mounted project.
+  directory across calls. Use paths of the form `/root/...` for the WSL workspace.
 
 - The extension is developed and tested on Windows normally (node/vitest) and is
-  unaffected by WSL.
+  unaffected by WSL. The Windows-side mirror of the repo lives at
+  `/mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec`.
+
+Git remote workflow:
+
+- WSL currently has NO GitHub push credentials (no `gh`, no credential helper), so
+  pushing from WSL will hang on an HTTPS auth prompt.
+- To push/merge: do it from the Windows workspace at
+  `/mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec`
+  (credentials work there), then fetch/reset the WSL `main` to match. Alternatively
+  set up WSL credentials (`gh auth login` or a PAT + credential helper) once, and
+  WSL can push directly.
 
 Conventions:
 
-- Always build/test the Rust companion in WSL, never with the Windows `cargo`.
+- Always build/test the Rust companion in WSL at `/root/job-vault/companion`, never
+  with the Windows `cargo`.
 - Do not shell out to Windows-native cargo; use `wsl -d Ubuntu -- bash -lic "..."`.
-- Rust state (`~/.cargo`, target dirs) lives inside the WSL filesystem and persists
-  across sessions. Wait for first-time dependency downloads/compilation; it is slow
-  on first run.
+- Rust state (`/root/.cargo`, `/root/.cargo` target dirs) lives inside the WSL
+  filesystem and persists across sessions. Wait for first-time dependency
+  downloads/compilation; it is slow on first run.
+- opencode `permission` rules for the WSL paths (`/root/job-vault/**`,
+  `/root/.cargo/**`, `wsl *`) are configured in `opencode.json`.
 
 ## 8. Initial technology direction
 

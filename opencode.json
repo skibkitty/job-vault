@@ -4,8 +4,11 @@
     "external_directory": {
       "*": "ask",
       "/mnt/c/Users/test/Downloads/job-vault-opencode-spec/**": "allow",
+      "/root/job-vault/**": "allow",
+      "/root/.cargo/**": "allow",
+      "/root/.rustup/**": "allow",
       "/home/*/.cargo/**": "allow",
-      "/root/.cargo/**": "allow"
+      "/home/*/.rustup/**": "allow"
     },
     "bash": {
       "*": "ask",
@@ -19,7 +22,12 @@
       "git status*": "allow",
       "git diff*": "allow",
       "git log*": "allow",
+      "git fetch*": "allow",
+      "git pull*": "allow",
+      "git push*": "ask",
+      "git merge*": "ask",
       "Test-Path*": "allow",
+      "Get-ChildItem*": "allow",
       "Get-MpComputerStatus*": "allow"
     },
     "read": {
@@ -27,6 +35,10 @@
       "*.env": "deny",
       "*.env.*": "deny",
       "*.env.example": "allow"
+    },
+    "edit": {
+      "*.env": "deny",
+      "*.env.*": "deny"
     }
   }
 }
