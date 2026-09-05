@@ -37,6 +37,36 @@ pub struct SectionChanges {
     pub removed_responsibilities: usize,
 }
 
+/// A single change with a deterministic significance score and rank.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RankedChange {
+    pub change: SegmentChange,
+    /// Higher is more significant. Deterministic.
+    pub score: f64,
+    /// 1-based position when ordered by score descending (ties broken deterministically).
+    pub rank: usize,
+}
+
+/// A diff result with its changes ranked most-significant-first.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RankedDiffResult {
+    pub diff: DiffResult,
+    /// Same `changes` as `diff.changes`, ordered by score descending then by
+    /// (old_index, new_index, content) for determinism.
+    pub ranked: Vec<RankedChange>,
+}
+
+/// Change-ranking for an entire section diff (requirements + responsibilities).
+#[derive(Debug, Clone, PartialEq)]
+pub struct RankedSectionChanges {
+    pub requirements: RankedDiffResult,
+    pub responsibilities: RankedDiffResult,
+    pub added_requirements: usize,
+    pub removed_requirements: usize,
+    pub added_responsibilities: usize,
+    pub removed_responsibilities: usize,
+}
+
 pub struct TextDiffEngine {
     similarity_threshold: f64,
 }
@@ -293,6 +323,103 @@ impl TextDiffEngine {
             added_responsibilities,
             removed_responsibilities,
         }
+    }
+
+    /// Ranks the changes in a `DiffResult` most-significant-first.
+    ///
+    /// Significance is a deterministic score in `[0, 2]`:
+    /// - Added and Removed changes score the base weight `2.0`.
+    /// - Modified changes score `1.0 + 0.5 * (1 - similarity(previous, content))`,
+    ///   so a larger textual rewrite outranks a trivial tweak.
+    /// - Moved changes score the lowest base weight `0.5`.
+    ///
+    /// Ties are broken by (old_index, new_index) then content so the ranking is
+    /// stable no matter the input order.
+    pub fn rank_changes(&self, diff: &DiffResult) -> RankedDiffResult {
+        let mut ranked: Vec<RankedChange> = diff
+            .changes
+            .iter()
+            .map(|change| RankedChange {
+                change: change.clone(),
+                score: Self::change_score(change),
+                rank: 0,
+            })
+            .collect();
+
+        ranked.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| Self::change_key(&a.change).cmp(&Self::change_key(&b.change)))
+        });
+
+        for (i, r) in ranked.iter_mut().enumerate() {
+            r.rank = i + 1;
+        }
+
+        RankedDiffResult {
+            diff: diff.clone(),
+            ranked,
+        }
+    }
+
+    /// Deterministic significance score for a single change. See `rank_changes`.
+    pub fn change_score(change: &SegmentChange) -> f64 {
+        match change.change_type {
+            ChangeType::Added | ChangeType::Removed => 2.0,
+            ChangeType::Modified => {
+                let prev = change.previous_content.as_deref().unwrap_or("");
+                let sim = Self::similarity(
+                    &TextNormalizer::normalize_for_comparison(prev),
+                    &TextNormalizer::normalize_for_comparison(&change.content),
+                );
+                1.0 + 0.5 * (1.0 - sim)
+            }
+            ChangeType::Moved => 0.5,
+        }
+    }
+
+    /// Ranks both sections of a `SectionChanges`, preserving the added/removed counts.
+    pub fn rank_section_changes(&self, sections: &SectionChanges) -> RankedSectionChanges {
+        RankedSectionChanges {
+            requirements: self.rank_changes(&sections.requirements),
+            responsibilities: self.rank_changes(&sections.responsibilities),
+            added_requirements: sections.added_requirements,
+            removed_requirements: sections.removed_requirements,
+            added_responsibilities: sections.added_responsibilities,
+            removed_responsibilities: sections.removed_responsibilities,
+        }
+    }
+
+    /// Combined, across-section ranking of every change in a `SectionChanges`.
+    /// Used by the UI to surface "the most important changes" at a glance.
+    pub fn rank_all_section_changes(&self, sections: &SectionChanges) -> Vec<RankedChange> {
+        let mut all: Vec<RankedChange> = self
+            .rank_changes(&sections.requirements)
+            .ranked
+            .into_iter()
+            .chain(
+                self.rank_changes(&sections.responsibilities)
+                    .ranked
+                    .into_iter(),
+            )
+            .collect();
+
+        all.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| Self::change_key(&a.change).cmp(&Self::change_key(&b.change)))
+        });
+
+        for (i, r) in all.iter_mut().enumerate() {
+            r.rank = i + 1;
+        }
+        all
+    }
+
+    fn change_key(change: &SegmentChange) -> (usize, usize, &str) {
+        (change.old_index.unwrap_or(0), change.new_index.unwrap_or(0), change.content.as_str())
     }
 
     pub fn similarity(a_normalized: &str, b_normalized: &str) -> f64 {
@@ -1467,5 +1594,200 @@ mod tests {
         let result = engine.diff_requirements(old, new);
         assert!(result.changes.is_empty());
         assert_eq!(result.unchanged_count, 1);
+    }
+
+    #[test]
+    fn change_score_added_and_removed_are_highest() {
+        let added = SegmentChange {
+            change_type: ChangeType::Added,
+            content: "Brand new".to_string(),
+            previous_content: None,
+            old_index: None,
+            new_index: Some(0),
+        };
+        let removed = SegmentChange {
+            change_type: ChangeType::Removed,
+            content: "Gone".to_string(),
+            previous_content: None,
+            old_index: Some(0),
+            new_index: None,
+        };
+        assert_eq!(TextDiffEngine::change_score(&added), 2.0);
+        assert_eq!(TextDiffEngine::change_score(&removed), 2.0);
+    }
+
+    #[test]
+    fn change_score_modified_uses_similarity() {
+        let engine = TextDiffEngine::new();
+        // Identical previous/content would be unchanged (not Modified), but a
+        // caller-constructed Modified with same content scores the minimum (1.0).
+        let same = SegmentChange {
+            change_type: ChangeType::Modified,
+            content: "Same text".to_string(),
+            previous_content: Some("Same text".to_string()),
+            old_index: Some(0),
+            new_index: Some(0),
+        };
+        // Lightly edited content scores just above 1.0.
+        let light = SegmentChange {
+            change_type: ChangeType::Modified,
+            content: "Same text edited".to_string(),
+            previous_content: Some("Same text".to_string()),
+            old_index: Some(0),
+            new_index: Some(0),
+        };
+        // Completely different content scores the max (1.5).
+        let heavy = SegmentChange {
+            change_type: ChangeType::Modified,
+            content: "Totally different words here".to_string(),
+            previous_content: Some("Same text".to_string()),
+            old_index: Some(0),
+            new_index: Some(0),
+        };
+        let s_same = TextDiffEngine::change_score(&same);
+        let s_light = TextDiffEngine::change_score(&light);
+        let s_heavy = TextDiffEngine::change_score(&heavy);
+        assert!(s_same >= 1.0);
+        assert!(s_light > s_same);
+        assert!(s_heavy > s_light);
+        assert!(s_heavy <= 1.5);
+    }
+
+    #[test]
+    fn change_score_moved_is_lowest() {
+        let moved = SegmentChange {
+            change_type: ChangeType::Moved,
+            content: "Something".to_string(),
+            previous_content: Some("Something".to_string()),
+            old_index: Some(1),
+            new_index: Some(0),
+        };
+        assert!(TextDiffEngine::change_score(&moved) < 1.0);
+        assert!(TextDiffEngine::change_score(&moved) > 0.0);
+    }
+
+    #[test]
+    fn rank_changes_orders_added_above_modified_above_moved() {
+        let engine = TextDiffEngine::new();
+        let changes = vec![
+            SegmentChange {
+                change_type: ChangeType::Moved,
+                content: "Moved item".to_string(),
+                previous_content: Some("Moved item".to_string()),
+                old_index: Some(2),
+                new_index: Some(0),
+            },
+            SegmentChange {
+                change_type: ChangeType::Added,
+                content: "New item".to_string(),
+                previous_content: None,
+                old_index: None,
+                new_index: Some(1),
+            },
+            SegmentChange {
+                change_type: ChangeType::Modified,
+                content: "Edited item".to_string(),
+                previous_content: Some("Old item".to_string()),
+                old_index: Some(0),
+                new_index: Some(2),
+            },
+        ];
+        let result = engine.rank_changes(&DiffResult {
+            changes,
+            unchanged_count: 0,
+        });
+
+        assert_eq!(result.ranked.len(), 3);
+        assert_eq!(result.ranked[0].change.change_type, ChangeType::Added);
+        assert_eq!(result.ranked[1].change.change_type, ChangeType::Modified);
+        assert_eq!(result.ranked[2].change.change_type, ChangeType::Moved);
+        assert_eq!(result.ranked[0].rank, 1);
+        assert_eq!(result.ranked[1].rank, 2);
+        assert_eq!(result.ranked[2].rank, 3);
+        assert!(result.ranked[0].score > result.ranked[1].score);
+        assert!(result.ranked[1].score > result.ranked[2].score);
+    }
+
+    #[test]
+    fn rank_changes_preserves_diff_and_is_deterministic() {
+        let engine = TextDiffEngine::new();
+        let old_reqs = "- Rust experience\n- Growth mindset";
+        let new_reqs = "- Rust experience\n- Strong SQL\n- Leadership at scale";
+        let diff = engine.diff_requirements(Some(old_reqs), Some(new_reqs));
+
+        let first = engine.rank_changes(&diff);
+        let second = engine.rank_changes(&diff);
+
+        assert_eq!(first.diff, diff);
+        assert_eq!(first, second);
+        // Ranks are dense: 1..=n.
+        let ranks: Vec<usize> = first.ranked.iter().map(|r| r.rank).collect();
+        for (i, r) in ranks.iter().enumerate() {
+            assert_eq!(*r, i + 1);
+        }
+        // Sorted by score descending.
+        let scores: Vec<f64> = first.ranked.iter().map(|r| r.score).collect();
+        for w in scores.windows(2) {
+            assert!(w[0] >= w[1]);
+        }
+    }
+
+    #[test]
+    fn rank_changes_empty_diff() {
+        let engine = TextDiffEngine::new();
+        let result = engine.rank_changes(&DiffResult {
+            changes: vec![],
+            unchanged_count: 0,
+        });
+        assert!(result.ranked.is_empty());
+    }
+
+    #[test]
+    fn rank_sections_ranks_both_sections_and_preserves_counts() {
+        let engine = TextDiffEngine::new();
+        let old_reqs = "- Rust experience";
+        let old_resp = "- Ship features\n- Manage hiring";
+        let new_reqs = "- Rust experience\n- Strong SQL";
+        let new_resp = "- Ship features";
+
+        let sections = engine.diff_requirement_sections(
+            Some(old_reqs),
+            Some(old_resp),
+            Some(new_reqs),
+            Some(new_resp),
+        );
+        let ranked = engine.rank_section_changes(&sections);
+
+        assert_eq!(ranked.added_requirements, 1);
+        assert_eq!(ranked.removed_requirements, 0);
+        assert_eq!(ranked.added_responsibilities, 0);
+        assert_eq!(ranked.removed_responsibilities, 1);
+        assert_eq!(ranked.requirements.ranked.len(), 1);
+        assert_eq!(ranked.responsibilities.ranked.len(), 1);
+        assert_eq!(ranked.requirements.ranked[0].rank, 1);
+        assert_eq!(ranked.responsibilities.ranked[0].rank, 1);
+    }
+
+    #[test]
+    fn rank_all_sections_combines_and_orders_across_sections() {
+        let engine = TextDiffEngine::new();
+        let old_reqs = "- Rust experience";
+        let old_resp = "- Ship features";
+        let new_reqs = "- Rust experience\n- Strong SQL";
+        let new_resp = "- Ship features\n- Lead on-call";
+
+        let sections = engine.diff_requirement_sections(
+            Some(old_reqs),
+            Some(old_resp),
+            Some(new_reqs),
+            Some(new_resp),
+        );
+        let ranked = engine.rank_all_section_changes(&sections);
+
+        assert_eq!(ranked.len(), 2);
+        // Both additions score equally; tie-break keeps them deterministically ordered.
+        assert!(ranked.iter().all(|r| r.change.change_type == ChangeType::Added));
+        assert_eq!(ranked[0].rank, 1);
+        assert_eq!(ranked[1].rank, 2);
     }
 }

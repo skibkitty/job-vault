@@ -712,9 +712,42 @@ Acceptance criteria:
 
 ## TASK-055 — Change ranking
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
 Dependencies: TASK-054
+
+Goal:
+
+Rank the changes produced by the diff engine by significance, so the UI can
+surface the most meaningful changes for a job between snapshots.
+
+Rationale:
+
+The diff engine (TASK-051..054) produces a flat, unordered list of
+`SegmentChange`s. Without an ordering, the UI cannot prioritise which changes
+matter most. TASK-055 adds a deterministic significance score and a ranked
+ordering, staying within `companion/src/diff/mod.rs` with no new dependencies,
+no network, no LLM.
+
+Acceptance criteria:
+
+- [x] `RankedChange` carries a `SegmentChange` plus a deterministic `score`
+- [x] `RankedDiffResult` holds the original `DiffResult` plus `ranked` changes
+  (most-significant-first)
+- [x] `RankedSectionChanges` mirrors `SectionChanges` with per-section ranking
+- [x] `TextDiffEngine::rank_changes` orders a `DiffResult` by significance
+- [x] Scoring is deterministic: Added/Removed score `2.0`, Modified scores
+  `1.0 + 0.5 * (1 - similarity)`, Moved scores `0.5`
+- [x] Ties broken by (old_index, new_index, content) for a stable order
+- [x] Ranks are dense and 1-based (1 = most significant)
+- [x] `rank_section_changes` ranks both requirements and responsibilities
+  while preserving added/removed counts
+- [x] `rank_all_section_changes` gives a combined, cross-section ordering
+- [x] No LLM, no network access, no new external dependencies
+- [x] Deterministic (no randomness/time/global state)
+- [x] Tests for scoring, ordering, empty diff, determinism, section ranking,
+  cross-section ranking
+- [x] All tests pass via WSL
 
 ---
 
