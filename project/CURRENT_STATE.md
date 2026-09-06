@@ -10,15 +10,15 @@ IN_PROGRESS
 
 ## Current phase
 
-Phase 5 — Diff engine (core deterministic diffing); extension UI merged through TASK-062
+Phase 4 — Repost detection complete (URL/external-ID matching, fingerprints, similarity matching); Phase 5 diff engine and Phase 6 UI (TASK-060..062) merged
 
 ## Current task
 
-TASK-054 (DONE) — Requirement/responsibility changes. Diff engine (TASK-051..054) merged to main.
+TASK-042 (DONE) — Content similarity matching. Merge of TASK-040..042 lands matching complete on main.
 
 ## Recommended next action
 
-TASK-042 (similarity matching) — next after TASK-055 (DONE). Phase 6 UI (TASK-063+) unblocks once TASK-055 lands.
+TASK-063 (comparison view) — P0, dependency TASK-055 (DONE). TASK-043 (match-review UI, P1, deps TASK-042) also eligible.
 
 ## Completed
 
@@ -63,20 +63,21 @@ TASK-042 (similarity matching) — next after TASK-055 (DONE). Phase 6 UI (TASK-
 - Popup job list with IPC fetch, safe rendering, filtering, and states implemented (TASK-060).
 - Popup job detail view with IPC fetch, safe rendering, and back navigation implemented (TASK-061).
 - Snapshot history UI with clickable snapshots, snapshot detail view, and back-to-job navigation implemented (TASK-062).
+- Content-similarity matching implemented (TASK-042): deterministic token-overlap similarity over normalized posting text (title/company/location/description), combined with URL/external-ID/fingerprint signals into a per-candidate confidence. 263 companion tests pass.
 
 ## Not yet implemented
 
 - Companion IPC (companion-side handlers for job.list, job.get return NOT_IMPLEMENTED)
 - Database encryption
 - Browser adapters
-- Similarity matching (TASK-042)
+- Match-review UI (TASK-043)
 - Remaining UI (comparison view TASK-063, change highlighting TASK-064, keyword view TASK-065)
 
 ## Test execution note
 
 Rust tests are executed in WSL (Ubuntu) via `cargo test` because Windows Smart App
-Control blocks execution of freshly compiled unsigned binaries on the host. All 247
-companion tests pass (239 prior plus 8 change-ranking tests from TASK-055).
+Control blocks execution of freshly compiled unsigned binaries on the host. All 263
+companion tests pass (247 prior plus 16 similarity-matching tests from TASK-042).
 Run with `wsl -d Ubuntu -u root -- bash -lic "cd /root/job-vault/companion && cargo test"`
 (always `-u root`: the distro default user is `test`, which cannot read `/root/job-vault`).
 
@@ -88,4 +89,4 @@ surface has been added.
 
 ## Last updated
 
-TASK-055: Change ranking implemented; 247 companion tests passing via WSL.
+TASK-042: Content similarity matching implemented; 263 companion tests passing via WSL.

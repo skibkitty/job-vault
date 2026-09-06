@@ -579,9 +579,41 @@ Acceptance criteria:
 
 ## TASK-042 — Similarity matching
 
-Status: BACKLOG
+Status: DONE
 Priority: P0
-Dependencies: TASK-041
+Dependencies: TASK-041 (DONE)
+
+Goal:
+
+Implement deterministic content-similarity matching so a newly captured job
+posting can be matched to existing saved jobs even when its URL or external
+job ID has changed (e.g. a repost with a new link but the same content).
+
+Rationale:
+
+URL/external-ID matching (TASK-040) cannot match a repost that arrives with a
+new URL or new external ID. Fingerprinting (TASK-041) detects exact
+title/company/location duplicates but misses postings where any of those
+fields shift slightly. TASK-042 adds a fuzzy content-similarity score (token
+overlap over the normalized posting text) and combines it with the existing
+signals into a single deterministic confidence per candidate job, matching the
+multi-signal job-identity requirement in AGENTS.md section 11.
+
+Acceptance criteria:
+
+- [x] Content similarity between two postings is deterministic and lies in `[0, 1]`
+- [x] Comparison text is built from title, company, location, and (when available) description
+- [x] Comparison uses TASK-050 normalization (HTML strip, lowercase, whitespace collapse) plus filler-word removal
+- [x] Identical postings score `1.0`; disjoint postings score `0.0`; partial overlap lands in between
+- [x] Similarity is punctuation/case tolerant (normalization, no string-equality requirement)
+- [x] The content-similarity threshold is configurable via the constructor; default is `0.70`
+- [x] `find_similar` returns a candidate when content similarity exceeds the threshold even if URL and external ID differ
+- [x] Confidence composition and dominance order: exact URL `1.0` > external ID `0.95` > identical fingerprint `0.90` > content similarity `0.50 + 0.39 * sim`
+- [x] Each candidate yields at most one `MatchResult` (highest-confidence signal wins per candidate)
+- [x] Results sorted by confidence descending; ties broken deterministically by `matched_job_id`
+- [x] No LLM, no network access, no new external dependencies
+- [x] Tests for scoring, threshold behavior, fingerprint-vs-content dominance, combined-signal max, sorting/determinism, and empty candidates
+- [x] All tests pass via WSL `cargo test` (263 passed, 0 failed)
 
 ## TASK-043 — Match-review UI
 
