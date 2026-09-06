@@ -9,11 +9,10 @@ Date:
 2026-09-05
 
 Tasks:
-TASK-055 (change ranking) implemented and verified in WSL (247 companion tests pass).
-Diff engine TASK-051/052/053/054 previously merged to main. Canonical Rust workspace relocated to
-WSL at /root/job-vault; WSL dev environment documented (AGENTS.md section 7b); WSL push
-credentials now fully wired (root gh config + gh auth setup-git).
-TASK-060/061/062 (extension UI) previously merged to main.
+TASK-055 (change ranking) reconciled to main (was committed on task/TASK-055 in WSL but
+uncommitted on the Windows mirror; merged, tested, pushed, mirror synced).
+TASK-042 (similarity matching) implemented, tested (263 companion tests), committed on
+task/TASK-042, awaiting merge.
 
 ## What has been done
 
@@ -87,6 +86,29 @@ TASK-060/061/062 (extension UI) previously merged to main.
 - Wrote 8 tests: scoring weights, ordering (Added > Modified > Moved), determinism,
   dense ranks, empty diff, section ranking, cross-section ranking.
 
+### TASK-042 (similarity matching)
+
+- Added to `companion/src/matching/mod.rs`:
+  - `MatchType::Similarity` variant.
+  - `SimilarityMatcher` with a configurable content-similarity threshold (default `0.70`).
+  - `JobCandidate<'a>` (existing `Job` + optional latest description).
+  - `content_similarity(new_job, new_desc, existing_job, existing_desc)` computes a
+    deterministic Dice coefficient over the normalized posting text (title, company,
+    location, description) built via `TextNormalizer` (HTML strip, lowercase,
+    whitespace collapse, filler-word removal).
+  - `find_similar(new_job, new_desc, candidates)` combines signals per candidate:
+    exact URL `1.0`, external job ID `0.95`, identical fingerprint `0.90`, content
+    similarity `0.50 + 0.39 * sim` (maxes at `0.89`, always below fingerprint). Each
+    candidate yields at most one `MatchResult` (highest-confidence, specificity tie-
+    break). Results sorted by confidence descending, ties by `matched_job_id`.
+  - Reuses `FingerprintGenerator` (TASK-041) and `UrlMatcher` (TASK-040); no new
+    dependencies, no network, no LLM, fully deterministic.
+- Wrote 16 new tests covering scoring, punctuation/case tolerance, threshold
+  configurability, fingerprint-vs-content dominance, exact-URL and external-ID
+  dominance, combined-signal max, sorting order, determinism, empty candidates.
+- TASK-042 acceptance criteria written into `project/TASKS.md` (was BACKLOG with no
+  criteria) and marked DONE.
+
 ## Test execution workaround (important)
 
 Windows Smart App Control blocks executing freshly compiled unsigned binaries on the
@@ -97,7 +119,7 @@ Ubuntu through the MSVC-targeted Cargo project:
 wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/companion-NNN/ && . ~/.cargo/env && cargo test"
 ```
 
-- All 247 companion tests pass (202 prior phases + 37 diff-engine tests + 8 ranking tests).
+- All 263 companion tests pass (247 prior + 16 similarity-matching tests from TASK-042).
 - The default WSL distro is `docker-desktop` (no Rust toolchain); `Ubuntu` distro has
   the Rust toolchain configured.
 
@@ -105,7 +127,9 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
 
 - TASK-051 paragraph/sentence diff, TASK-052 bullet diff, TASK-053 moved/reordered
   detection, TASK-054 requirement/responsibility changes, and TASK-055 change ranking:
-  verified by 247 passing Rust tests via WSL.
+  verified by 263 passing Rust tests via WSL.
+- TASK-042 content-similarity matching (URL + external-ID + fingerprint + content
+  similarity combined into a deterministic per-candidate confidence).
 - Extension UI merged through TASK-062 (job list, job detail, snapshot history/detail),
   verified by 86 extension tests.
 
@@ -114,19 +138,25 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
 - Executing newly built Rust binaries on the Windows host (Smart App Control).
 - Companion still returns NOT_IMPLEMENTED for job.list and job.get (IPC handlers not
   yet wired to the diff/storage modules).
+- `SimilarityMatcher` is pure logic with tests only; it is not yet wired into the
+  companion IPC layer (that is TASK-043 and the companion IPC work).
 
 ## Tests run
 
-- Rust: 247 passed, 0 failed (`cargo test` via WSL Ubuntu, as root).
+- Rust: 263 passed, 0 failed (`cargo test` via WSL Ubuntu, as root).
 - Extension: typecheck + vitest (86 passed) + tsc build (as of TASK-062).
 
-## Files changed (task/TASK-055)
+## Files changed (task/TASK-042)
 
-- companion/src/diff/mod.rs (RankedChange, RankedDiffResult, RankedSectionChanges,
-  rank_changes, change_score, rank_section_changes, rank_all_section_changes, ranking tests)
-- project/TASKS.md (TASK-055 criteria, marked DONE)
+- companion/src/matching/mod.rs (MatchType::Similarity, SimilarityMatcher, JobCandidate,
+  content_similarity, find_similar, 16 new tests)
+- project/TASKS.md (TASK-042 criteria, marked DONE)
 - project/CURRENT_STATE.md
 - project/HANDOFF.md
+- AGENTS.md and docs/TESTING.md were reconciled to the WSL canonical workspace as
+  part of the earlier TASK-055 merge (they already carried the `-u root` and gh
+  credential facts on the Windows mirror; they were missing from the WSL repo until the
+  TASK-055 merge commit a0911ec).
 
 ## Important discoveries
 
@@ -165,13 +195,30 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
 
 ## Next recommended action
 
-1. TASK-055 — Change ranking is now DONE (see session note below). Acceptance criteria
-   defined and implemented in `companion/src/diff/mod.rs`.
-2. Continue with TASK-042 (similarity matching), then Phase 6 UI (TASK-063+, unblocks
-   once TASK-055's branch merges to main).
+1. TASK-063 — Comparison view (Phase 6 UI, P0). Dependency TASK-055 (DONE) is satisfied;
+   the companion diff engine + ranking exist to power it. TASK-043 (match-review UI, P1,
+   dep TASK-042 DONE) is also eligible if a UI slot is wanted next instead.
+2. TASK-064 (change highlighting) and TASK-065 (keyword/tailoring view) follow TASK-063.
 3. Remember to update these docs if you make further changes.
 
 ## Session note (opencode/big-pickle, 2026-09-05)
+
+- Reconciled TASK-055: it had been committed on `task/TASK-055` in WSL (a27bfdb) but
+  left as uncommitted changes on the Windows mirror's `main`. Merged to main in WSL
+  (plus the AGENTS.md/TESTING.md `-u root` + gh-credential doc updates that only
+  existed on the Windows mirror — commit a0911ec), verified `cargo test` (247),
+  pushed `origin/main` (37808eb..1cbef6b), and hard-reset the Windows mirror to
+  origin/main. Both workspaces are now identical at 1cbef6b.
+- Implemented TASK-042 (similarity matching) on `task/TASK-042`:
+  `SimilarityMatcher` in `companion/src/matching/mod.rs` combines URL, external-ID,
+  fingerprint, and content-token-overlap similarity into one deterministic confidence
+  per candidate (documented in TASK-042 "Rationale" in project/TASKS.md). 16 new
+  tests; 263 total pass via WSL. Branches created in both the WSL repo and the Windows
+  mirror; branch is ready to merge to main.
+- One test was adjusted during development: `find_similar_different_title_no_description_no_match`
+  initially used "QA Engineer" vs "DevOps Engineer" with identical company/location,
+  which yields Dice 0.75 and correctly matches at the default 0.70 threshold; switched
+  the negative case to disjoint fields.
 
 - TASK-055 (change ranking) implemented and verified: 247 companion tests pass in WSL
   (239 prior + 8 new). See "What works" below.
@@ -209,13 +256,16 @@ wsl -d Ubuntu -- bash -lc "rsync -a /mnt/c/.../companion/ /root/job-vault/compan
 3. WSL push credentials ARE wired (root gh config + `gh auth setup-git`); you can push
    and merge directly from `/root/job-vault` as root. Verify once with `git push origin <branch> --dry-run`
    if unsure.
-4. For the next Rust diff task (TASK-042), work in the WSL repo (`/root/job-vault`) and
-   commit there. Branch off `main` (diff engine + TASK-055 will be merged).
+4. For the next task (TASK-063 comparison view is UI/extension work on Windows; TASK-043
+   match-review UI depends on TASK-042 which is now DONE), work in the extension repo on
+   Windows for UI tasks. For any future Rust tasks, work in the WSL repo
+   (`/root/job-vault`) and commit there. Branch off `main` (similarity matching is now on
+   main once task/TASK-042 merges).
 
 ## Blockers
 
 - WSL default user mismatch: `wsl -d Ubuntu -- bash ...` runs as `test`, which cannot
   reach `/root/job-vault` — always use `-u root` (mitigated; documented).
 - Windows Smart App Control blocks host-side Rust test execution (mitigated via WSL).
-- Phase 6 UI tasks after TASK-062 (TASK-063+) are next once TASK-055's change ranking
-  merges to main.
+- TASK-063 (comparison view) can start once task/TASK-042 merges to main (TASK-055 is
+  already on main).
