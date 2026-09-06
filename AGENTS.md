@@ -155,11 +155,14 @@ How to run Rust commands:
 - Invoke Rust tooling through `wsl` with a login shell so `~/.cargo/bin` is on PATH:
 
   ```text
-  wsl -d Ubuntu -- bash -lic "cd /root/job-vault/companion && cargo test"
+  wsl -d Ubuntu -u root -- bash -lic "cd /root/job-vault/companion && cargo test"
   ```
 
-  Because each `wsl ... bash -lic` starts a fresh login shell, always `cd` into the
-  companion directory inside the command; do not rely on a persistent working
+  IMPORTANT: always pass `-u root`. The `Ubuntu` distro's default WSL user is `test`
+  (uid 1000), which cannot read `/root/job-vault` or `/root/.cargo` (both root-owned:
+  `Permission denied`). Without `-u root` the command silently runs as `test` and
+  fails. Because each `wsl ... bash -lic` starts a fresh login shell, always `cd` into
+  the companion directory inside the command; do not rely on a persistent working
   directory across calls. Use paths of the form `/root/...` for the WSL workspace.
 
 - The extension is developed and tested on Windows normally (node/vitest) and is
@@ -168,19 +171,22 @@ How to run Rust commands:
 
 Git remote workflow:
 
-- WSL currently has NO GitHub push credentials (no `gh`, no credential helper), so
-  pushing from WSL will hang on an HTTPS auth prompt.
-- To push/merge: do it from the Windows workspace at
+- `gh` 2.46.0 is installed in WSL and `gh auth login` was completed as user `test`
+  (config at `/home/test/.config/gh/hosts.yml`, account `skibkitty`, scopes include
+  `repo`/`workflow`). Root has NO gh credentials yet.
+- No git credential helper is configured. Before git can push from WSL, root must
+  either get the gh config (copy `/home/test/.config/gh` → `/root/.config/gh` or re-run
+  `gh auth login` as root) and run `gh auth setup-git`.
+- Until that is done and `git push origin main` is verified from `/root/job-vault`,
+  push/merge from the Windows workspace at
   `/mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec`
-  (credentials work there), then fetch/reset the WSL `main` to match. Alternatively
-  set up WSL credentials (`gh auth login` or a PAT + credential helper) once, and
-  WSL can push directly.
+  (credentials work there), then fetch/reset the WSL `main` to match.
 
 Conventions:
 
 - Always build/test the Rust companion in WSL at `/root/job-vault/companion`, never
   with the Windows `cargo`.
-- Do not shell out to Windows-native cargo; use `wsl -d Ubuntu -- bash -lic "..."`.
+- Do not shell out to Windows-native cargo; use `wsl -d Ubuntu -u root -- bash -lic "..."`.
 - Rust state (`/root/.cargo`, `/root/.cargo` target dirs) lives inside the WSL
   filesystem and persists across sessions. Wait for first-time dependency
   downloads/compilation; it is slow on first run.

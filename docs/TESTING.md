@@ -5,8 +5,11 @@
 The Rust companion is built and tested inside WSL. Use:
 
 ```text
-wsl -d Ubuntu -- bash -lic "cd /mnt/c/Users/test/Downloads/job-vault-opencode-spec/job-vault-opencode-spec/companion && cargo test"
+wsl -d Ubuntu -u root -- bash -lic "cd /root/job-vault/companion && cargo test"
 ```
+
+Always pass `-u root`: the `Ubuntu` distro's default WSL user is `test`, which cannot
+read the canonical workspace `/root/job-vault` (root-owned). See AGENTS.md section 7b.
 
 Windows-native cargo does not work because Smart App Control blocks freshly compiled
 unsigned binaries. See AGENTS.md section 7b for details.
