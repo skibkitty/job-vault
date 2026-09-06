@@ -18,8 +18,7 @@ TASK-054 (DONE) — Requirement/responsibility changes. Diff engine (TASK-051..0
 
 ## Recommended next action
 
-TASK-055 — Change ranking (depends on TASK-054, now DONE). Implement in `companion/src/diff/mod.rs`,
-then continue TASK-042 (similarity matching). Phase 6 UI (TASK-063+) unblocks once TASK-055 lands.
+TASK-042 (similarity matching) — next after TASK-055 (DONE). Phase 6 UI (TASK-063+) unblocks once TASK-055 lands.
 
 ## Completed
 
@@ -60,6 +59,7 @@ then continue TASK-042 (similarity matching). Phase 6 UI (TASK-063+) unblocks on
 - Bullet diff engine implemented (TASK-052).
 - Moved/reordered detection implemented (TASK-053).
 - Requirement/responsibility change detection implemented (TASK-054).
+- Change ranking (deterministic significance scoring and ordering) implemented (TASK-055).
 - Popup job list with IPC fetch, safe rendering, filtering, and states implemented (TASK-060).
 - Popup job detail view with IPC fetch, safe rendering, and back navigation implemented (TASK-061).
 - Snapshot history UI with clickable snapshots, snapshot detail view, and back-to-job navigation implemented (TASK-062).
@@ -69,14 +69,16 @@ then continue TASK-042 (similarity matching). Phase 6 UI (TASK-063+) unblocks on
 - Companion IPC (companion-side handlers for job.list, job.get return NOT_IMPLEMENTED)
 - Database encryption
 - Browser adapters
-- Diff engine advanced stage (change ranking TASK-055)
+- Similarity matching (TASK-042)
 - Remaining UI (comparison view TASK-063, change highlighting TASK-064, keyword view TASK-065)
 
 ## Test execution note
 
 Rust tests are executed in WSL (Ubuntu) via `cargo test` because Windows Smart App
-Control blocks execution of freshly compiled unsigned binaries on the host. All 239
-companion tests pass (202 prior phases plus 37 diff-engine tests from TASK-051/052/053/054).
+Control blocks execution of freshly compiled unsigned binaries on the host. All 247
+companion tests pass (239 prior plus 8 change-ranking tests from TASK-055).
+Run with `wsl -d Ubuntu -u root -- bash -lic "cd /root/job-vault/companion && cargo test"`
+(always `-u root`: the distro default user is `test`, which cannot read `/root/job-vault`).
 
 ## Known security concerns
 
@@ -86,4 +88,4 @@ surface has been added.
 
 ## Last updated
 
-TASK-054: Requirement/responsibility change detection implemented; 239 companion tests passing via WSL.
+TASK-055: Change ranking implemented; 247 companion tests passing via WSL.
